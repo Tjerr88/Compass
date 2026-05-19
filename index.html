@@ -1668,13 +1668,12 @@
                   <h3>${escapeHtml(config.title)}</h3>
                   <p class="subtle">${escapeHtml(config.subtitle)}</p>
                 </div>
-                <div class="slot-chip">Niet-trainingsdag</div>
               </div>
               <div class="action-value">${escapeHtml(valueLine)}</div>
               ${renderRecoveryGuidance(day)}
-              <p class="subtle">Rond deze dag af met Finish, of sla hem stil over zonder confetti. Daarna ga je door naar de volgende dag in de 7-daagse cyclus.</p>
+              <p class="subtle">Rond deze dag af met Dag afronden, of sla hem stil over zonder confetti. Daarna ga je door naar de volgende dag in de 7-daagse cyclus.</p>
               <div class="button-row">
-                <button class="primary-button" type="button" id="finishRecoveryButton">Finish</button>
+                <button class="primary-button" type="button" id="finishRecoveryButton">Dag afronden</button>
                 <button class="secondary-button" type="button" id="skipDayButton">Sla over</button>
               </div>
             </article>
@@ -1701,7 +1700,6 @@
             <div class="card-header">
               <div>
                 <h3>Vandaag</h3>
-                <p class="subtle">Vaste structuur: 1 core, 4 main patronen en 1 secundair slot. De volgorde van de main patronen roteert per trainingsdag.</p>
               </div>
               <div class="slot-chip">Sessie ${state.trainingSessionsCompleted + 1}</div>
             </div>
@@ -1710,7 +1708,7 @@
             ${modeNote}
             ${timerHtml}
             <div class="button-row">
-              <button class="primary-button" type="button" id="finishWorkoutButton">Finish</button>
+              <button class="primary-button" type="button" id="finishWorkoutButton">Dag afronden</button>
             </div>
           </article>
         </div>
