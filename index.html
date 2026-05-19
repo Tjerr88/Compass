@@ -1119,6 +1119,34 @@
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     }
 
+    function cloneRotations(rotations) {
+      return JSON.parse(JSON.stringify(rotations || createDefaultState().rotations));
+    }
+
+    function getSlotPrescription(slot) {
+      if (slot.patternKey === "core") {
+        return "1-2 sets van 10 reps";
+      }
+      if (slot.patternKey === "secondary") {
+        return "2-3 sets van 12 reps";
+      }
+      return "";
+    }
+
+    function resetCurrentWorkoutWithLatestExercises() {
+      if (!state.currentWorkout || state.currentWorkout.day !== state.currentDay || !isTrainingDay(state.currentDay)) {
+        return false;
+      }
+
+      if (state.currentWorkout.rotationSnapshot) {
+        state.rotations = cloneRotations(state.currentWorkout.rotationSnapshot);
+      }
+
+      state.currentWorkout = null;
+      saveState();
+      return true;
+    }
+
     function dayLabel(day) {
       return "Dag " + day;
     }
@@ -1290,6 +1318,7 @@
       }
 
       const freeChoiceMode = !!state.settings.freeChoice;
+      const rotationSnapshot = cloneRotations(state.rotations);
       const mainOrder = rotateMainOrder();
       const slots = [];
 
@@ -1315,6 +1344,7 @@
         day: state.currentDay,
         generatedAt: new Date().toISOString(),
         freeChoiceMode,
+        rotationSnapshot,
         order: mainOrder,
         slots
       };
@@ -1562,9 +1592,13 @@
       const nudgeMarkup = !freeChoiceMode && slot.previousText
         ? `<div class="nudge-line">${escapeHtml(slot.previousText)}</div>`
         : "";
+      const prescription = getSlotPrescription(slot);
       const exerciseMarkup = freeChoiceMode
         ? ""
         : `<p class="exercise-name">${escapeHtml(slot.exercise)}</p>`;
+      const prescriptionMarkup = prescription
+        ? `<div class="nudge-line">${escapeHtml(prescription)}</div>`
+        : "";
       const controlsMarkup = freeChoiceMode
         ? ""
         : `
@@ -1593,6 +1627,7 @@
               <p class="slot-kicker">${escapeHtml(slot.label)}</p>
               <h4 class="slot-title">${escapeHtml(slot.subcategory)}</h4>
               ${exerciseMarkup}
+              ${prescriptionMarkup}
             </div>
             <div class="slot-chip">${escapeHtml(slot.slotType === "main" ? "Main" : slot.label)}</div>
           </div>
@@ -2152,10 +2187,11 @@
             <div class="card-header">
               <div>
                 <h2>Eigen Oefeningen</h2>
-                <p class="subtle">Vul per subcategorie je eigen oefeningen in. Laat een vak leeg om de standaardlijst te blijven gebruiken.</p>
+                <p class="subtle">Vul per subcategorie je eigen oefeningen in. Laat een vak leeg om de standaardlijst te blijven gebruiken. Gebruik daarna save & reset om de huidige trainingsdag meteen opnieuw op te bouwen.</p>
               </div>
             </div>
             <div class="button-row">
+              <button class="primary-button" type="button" id="saveResetCustomButton">Opslaan &amp; reset huidige dag</button>
               <button class="ghost-button" type="button" id="resetAllCustomButton">Reset alle eigen oefeningen</button>
             </div>
           </article>
@@ -2184,6 +2220,16 @@
           saveState();
         });
       });
+
+      const saveResetButton = document.getElementById("saveResetCustomButton");
+      if (saveResetButton) {
+        saveResetButton.addEventListener("click", () => {
+          saveState();
+          resetCurrentWorkoutWithLatestExercises();
+          renderApp();
+          switchTab(TABS.TODAY);
+        });
+      }
 
       document.querySelectorAll('[data-action="reset-custom-subcategory"]').forEach((button) => {
         button.addEventListener("click", () => {
