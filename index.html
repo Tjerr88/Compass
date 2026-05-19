@@ -1117,7 +1117,8 @@
         trainingSessionsCompleted: 0,
         settings: {
           freeChoice: false,
-          hiitAsDay: true
+          hiitAsDay: true,
+          strengthMode: false
         },
         rotations: {
           mainOrderIndex: 0,
@@ -1767,19 +1768,34 @@
     }
 
     function renderGuidanceAccordion() {
+      const guidanceItems = state.settings.strengthMode
+        ? [
+            "Train elke set tot ongeveer <strong>1-2 RIR</strong>.",
+            "Werk binnen <strong>3-6 reps</strong>.",
+            "<strong>Minimaal 3 sets</strong>, maximaal <strong>6 sets</strong>.",
+            "Onder <strong>3 reps</strong> binnen de eerste 3 sets = <strong>gewicht omlaag</strong>.",
+            "Meer dan <strong>6 x 6</strong> mogelijk = <strong>gewicht omhoog</strong>.",
+            "Zolang je in de range blijft, <strong>voeg je sets toe</strong>.",
+            "Stop zodra je <strong>onder de minimale reps</strong> valt.",
+            "Rust ongeveer <strong>2-5 minuten</strong> tussen sets."
+          ]
+        : [
+            "Train elke set tot ongeveer <strong>1 RIR</strong>.",
+            "Werk binnen <strong>6-12 reps</strong>.",
+            "<strong>Minimaal 3 sets</strong>, maximaal <strong>6 sets</strong>.",
+            "Onder <strong>6 reps</strong> binnen de eerste 3 sets = <strong>gewicht omlaag</strong>.",
+            "Meer dan <strong>6 x 12</strong> mogelijk = <strong>gewicht omhoog</strong>.",
+            "Zolang je in de range blijft, <strong>voeg je sets toe</strong>.",
+            "Stop zodra je <strong>buiten de range</strong> valt."
+          ];
+
       return `
         <article class="card soft">
           <details class="accordion">
             <summary>Trainingsrichtlijnen</summary>
             <div class="accordion-body">
               <ul class="detail-list">
-                <li>Train elke set tot ongeveer <strong>1 RIR</strong>.</li>
-                <li>Werk binnen <strong>6-12 reps</strong>.</li>
-                <li><strong>Minimaal 3 sets</strong>, maximaal <strong>6 sets</strong>.</li>
-                <li>Onder <strong>6 reps</strong> binnen de eerste 3 sets = <strong>gewicht omlaag</strong>.</li>
-                <li>Meer dan <strong>6 x 12</strong> mogelijk = <strong>gewicht omhoog</strong>.</li>
-                <li>Zolang je in de range blijft, <strong>voeg je sets toe</strong>.</li>
-                <li>Stop zodra je <strong>buiten de range</strong> valt.</li>
+                ${guidanceItems.map((item) => `<li>${item}</li>`).join("")}
               </ul>
             </div>
           </details>
@@ -2158,6 +2174,16 @@
                 <span class="slider"></span>
               </label>
             </div>
+            <div class="toggle-row" style="margin-top: 14px;">
+              <div>
+                <h3>Strength</h3>
+                <p class="subtle">Aan: gebruik strength-richtlijnen met 3-6 reps en langere rust. Uit: gebruik de standaard trainingsrichtlijnen.</p>
+              </div>
+              <label class="switch" aria-label="Strength richtlijnen aan of uit">
+                <input type="checkbox" id="strengthModeToggle" ${state.settings.strengthMode ? "checked" : ""}>
+                <span class="slider"></span>
+              </label>
+            </div>
             <div class="button-row">
               <button class="ghost-button" type="button" id="resetButton">Reset alles</button>
             </div>
@@ -2248,6 +2274,13 @@
 
       document.getElementById("hiitAsDayToggle").addEventListener("change", (event) => {
         state.settings.hiitAsDay = event.target.checked;
+        saveState();
+        renderApp();
+        switchTab(TABS.OPTIONS);
+      });
+
+      document.getElementById("strengthModeToggle").addEventListener("change", (event) => {
+        state.settings.strengthMode = event.target.checked;
         saveState();
         renderApp();
         switchTab(TABS.OPTIONS);
