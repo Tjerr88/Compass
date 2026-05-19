@@ -369,6 +369,25 @@
       box-shadow: 0 0 0 4px rgba(64, 107, 90, 0.10);
     }
 
+    textarea {
+      width: 100%;
+      min-height: 112px;
+      resize: vertical;
+      border: 1px solid rgba(24, 49, 42, 0.14);
+      border-radius: 14px;
+      padding: 14px 15px;
+      font: inherit;
+      color: var(--text);
+      background: rgba(255,255,255,0.94);
+      outline: none;
+      transition: border-color var(--transition), box-shadow var(--transition);
+    }
+
+    textarea:focus {
+      border-color: rgba(64, 107, 90, 0.48);
+      box-shadow: 0 0 0 4px rgba(64, 107, 90, 0.10);
+    }
+
     .nudge-controls {
       display: flex;
       align-items: center;
@@ -750,15 +769,17 @@
     <nav class="tabs" aria-label="Navigatie">
       <button class="tab-button active" data-tab="today" type="button">Vandaag</button>
       <button class="tab-button" data-tab="options" type="button">Opties</button>
+      <button class="tab-button" data-tab="custom" type="button">Eigen Oefeningen</button>
     </nav>
 
     <section class="view active" id="todayView"></section>
     <section class="view" id="optionsView"></section>
+    <section class="view" id="customView"></section>
   </main>
 
   <script>
     const STORAGE_KEY = "training-generator-v1";
-    const TABS = { TODAY: "today", OPTIONS: "options" };
+    const TABS = { TODAY: "today", OPTIONS: "options", CUSTOM: "custom" };
     const TRAINING_DAYS = [1, 3, 5];
     const DAY_CYCLE = {
       1: { type: "training", title: "Trainingsdag", subtitle: "Core, vier main patronen en een secundair slot." },
@@ -941,6 +962,17 @@
       }
     };
 
+    function createDefaultCustomExercises() {
+      return {
+        core: {},
+        squat: {},
+        hinge: {},
+        push: {},
+        pull: {},
+        secondary: []
+      };
+    }
+
     function createDefaultState() {
       return {
         currentDay: 1,
@@ -965,6 +997,7 @@
         records: {
           exercises: {}
         },
+        customExercises: createDefaultCustomExercises(),
         timers: {
           long: {
             endTime: null,
@@ -1031,6 +1064,33 @@
             ...((saved.records && saved.records.exercises) || {})
           }
         },
+        customExercises: {
+          ...base.customExercises,
+          ...(saved.customExercises || {}),
+          core: {
+            ...base.customExercises.core,
+            ...((saved.customExercises && saved.customExercises.core) || {})
+          },
+          squat: {
+            ...base.customExercises.squat,
+            ...((saved.customExercises && saved.customExercises.squat) || {})
+          },
+          hinge: {
+            ...base.customExercises.hinge,
+            ...((saved.customExercises && saved.customExercises.hinge) || {})
+          },
+          push: {
+            ...base.customExercises.push,
+            ...((saved.customExercises && saved.customExercises.push) || {})
+          },
+          pull: {
+            ...base.customExercises.pull,
+            ...((saved.customExercises && saved.customExercises.pull) || {})
+          },
+          secondary: Array.isArray(saved.customExercises && saved.customExercises.secondary)
+            ? saved.customExercises.secondary
+            : base.customExercises.secondary
+        },
         timers: {
           ...base.timers,
           ...(saved.timers || {}),
@@ -1079,6 +1139,29 @@
       return patternKey + "::" + subcategory;
     }
 
+    function getStandardExerciseOptions(patternKey, subcategory) {
+      if (patternKey === "secondary") {
+        return PROGRAM.secondary.exercises.slice();
+      }
+      return (PROGRAM[patternKey].exercises[subcategory] || []).slice();
+    }
+
+    function getCustomExerciseOptions(patternKey, subcategory) {
+      if (patternKey === "secondary") {
+        return Array.isArray(state.customExercises.secondary) ? state.customExercises.secondary : [];
+      }
+      const group = state.customExercises[patternKey] || {};
+      return Array.isArray(group[subcategory]) ? group[subcategory] : [];
+    }
+
+    function getExerciseOptions(patternKey, subcategory) {
+      const custom = getCustomExerciseOptions(patternKey, subcategory).filter(Boolean);
+      if (custom.length) {
+        return custom;
+      }
+      return getStandardExerciseOptions(patternKey, subcategory);
+    }
+
     function getNextSubcategory(patternKey) {
       const pattern = PROGRAM[patternKey];
       const list = pattern.subcategories;
@@ -1089,7 +1172,7 @@
     }
 
     function getNextExercise(patternKey, subcategory) {
-      const options = PROGRAM[patternKey].exercises[subcategory];
+      const options = getExerciseOptions(patternKey, subcategory);
       const key = getSubcategoryKey(patternKey, subcategory);
       const currentIndex = state.rotations.exercises[key] || 0;
       const exercise = options[currentIndex % options.length];
@@ -1098,7 +1181,7 @@
     }
 
     function getNextSecondaryExercise() {
-      const options = PROGRAM.secondary.exercises;
+      const options = getExerciseOptions("secondary", "Secundair");
       const currentIndex = state.rotations.subcategories.secondary || 0;
       const exercise = options[currentIndex % options.length];
       state.rotations.subcategories.secondary = currentIndex + 1;
@@ -1553,6 +1636,25 @@
       `;
     }
 
+    function formatExerciseListForEditor(list) {
+      return list.join(", ");
+    }
+
+    function parseExerciseEditorValue(value) {
+      return value
+        .split(/[\n,]+/)
+        .map((item) => item.trim())
+        .filter(Boolean);
+    }
+
+    function hasCustomExerciseOverride(patternKey, subcategory) {
+      return getCustomExerciseOptions(patternKey, subcategory).length > 0;
+    }
+
+    function getEditorValue(patternKey, subcategory) {
+      return formatExerciseListForEditor(getExerciseOptions(patternKey, subcategory));
+    }
+
     function renderRecoveryGuidance(day) {
       const content = RECOVERY_CONTENT[day];
       if (!content) {
@@ -1833,7 +1935,7 @@
               ? item.slots.map((slot) => {
                   const line = [slot.label, slot.subcategory, slot.exercise].filter(Boolean).join(" — ");
                   return slot.value ? line + " (" + slot.value + ")" : line;
-                }).concat(item.hiitFinisher ? ["HIIT finisher â€” " + item.hiitFinisher] : []).join(" | ")
+                }).concat(item.hiitFinisher ? ["HIIT finisher - " + item.hiitFinisher] : []).join(" | ")
               : item.type === "recovery-finish"
                 ? "Dag afgerond en doorgezet naar de volgende dag."
                 : "Dag overgeslagen en doorgezet naar de volgende dag.";
@@ -1984,15 +2086,143 @@
       document.getElementById("resetButton").addEventListener("click", handleReset);
     }
 
+    function renderCustomExercises() {
+      const view = document.getElementById("customView");
+      const patternKeys = ["core", "squat", "push", "pull", "hinge"];
+      const cards = patternKeys.map((patternKey) => {
+        const pattern = PROGRAM[patternKey];
+        const blocks = pattern.subcategories.map((subcategory) => {
+          const standardList = getStandardExerciseOptions(patternKey, subcategory);
+          const hasOverride = hasCustomExerciseOverride(patternKey, subcategory);
+          return `
+            <div class="mini-card">
+              <h4>${escapeHtml(subcategory)}</h4>
+              <p class="subtle">${hasOverride ? "Eigen lijst actief." : "Standaardlijst actief."} Je kunt hieronder losse oefeningen aanpassen of alles vervangen.</p>
+              <label class="input-wrap">
+                <span class="input-label">Eigen oefeningen</span>
+                <textarea data-action="custom-exercises" data-pattern="${escapeHtml(patternKey)}" data-subcategory="${escapeHtml(subcategory)}" placeholder="Typ oefeningen gescheiden door komma's of nieuwe regels">${escapeHtml(getEditorValue(patternKey, subcategory))}</textarea>
+              </label>
+              <div class="button-row">
+                <button class="secondary-button" type="button" data-action="reset-custom-subcategory" data-pattern="${escapeHtml(patternKey)}" data-subcategory="${escapeHtml(subcategory)}">Herstel standaard</button>
+              </div>
+            </div>
+          `;
+        }).join("");
+
+        return `
+          <article class="card">
+            <div class="card-header">
+              <div>
+                <h3>${escapeHtml(pattern.label)}</h3>
+                <p class="subtle">Zodra je hier iets invult, gebruikt de generator jouw lijst in plaats van de standaardlijst.</p>
+              </div>
+            </div>
+            <div class="library-grid">${blocks}</div>
+          </article>
+        `;
+      }).join("");
+
+      const secondaryCard = `
+        <article class="card">
+          <div class="card-header">
+            <div>
+              <h3>Secundair</h3>
+              <p class="subtle">Deze lijst overschrijft de standaard secundaire rotatie.</p>
+            </div>
+          </div>
+          <div class="mini-card">
+            <p class="subtle">${hasCustomExerciseOverride("secondary", "Secundair") ? "Eigen lijst actief." : "Standaardlijst actief."} Je kunt hieronder losse oefeningen aanpassen of alles vervangen.</p>
+            <label class="input-wrap">
+              <span class="input-label">Eigen oefeningen</span>
+              <textarea data-action="custom-exercises" data-pattern="secondary" data-subcategory="Secundair" placeholder="Typ oefeningen gescheiden door komma's of nieuwe regels">${escapeHtml(getEditorValue("secondary", "Secundair"))}</textarea>
+            </label>
+            <div class="button-row">
+              <button class="secondary-button" type="button" data-action="reset-custom-subcategory" data-pattern="secondary" data-subcategory="Secundair">Herstel standaard</button>
+            </div>
+          </div>
+        </article>
+      `;
+
+      view.innerHTML = `
+        <div class="stack">
+          <article class="card">
+            <div class="card-header">
+              <div>
+                <h2>Eigen Oefeningen</h2>
+                <p class="subtle">Vul per subcategorie je eigen oefeningen in. Laat een vak leeg om de standaardlijst te blijven gebruiken.</p>
+              </div>
+            </div>
+            <div class="button-row">
+              <button class="ghost-button" type="button" id="resetAllCustomButton">Reset alle eigen oefeningen</button>
+            </div>
+          </article>
+          ${cards}
+          ${secondaryCard}
+        </div>
+      `;
+
+      bindCustomExerciseControls();
+    }
+
+    function bindCustomExerciseControls() {
+      document.querySelectorAll('[data-action="custom-exercises"]').forEach((textarea) => {
+        textarea.addEventListener("input", (event) => {
+          const patternKey = event.target.getAttribute("data-pattern");
+          const subcategory = event.target.getAttribute("data-subcategory");
+          const parsed = parseExerciseEditorValue(event.target.value);
+
+          if (patternKey === "secondary") {
+            state.customExercises.secondary = parsed;
+          } else {
+            state.customExercises[patternKey] = state.customExercises[patternKey] || {};
+            state.customExercises[patternKey][subcategory] = parsed;
+          }
+
+          saveState();
+        });
+      });
+
+      document.querySelectorAll('[data-action="reset-custom-subcategory"]').forEach((button) => {
+        button.addEventListener("click", () => {
+          const patternKey = button.getAttribute("data-pattern");
+          const subcategory = button.getAttribute("data-subcategory");
+
+          if (patternKey === "secondary") {
+            state.customExercises.secondary = [];
+          } else if (state.customExercises[patternKey]) {
+            delete state.customExercises[patternKey][subcategory];
+          }
+
+          saveState();
+          renderApp();
+          switchTab(TABS.CUSTOM);
+        });
+      });
+
+      const resetAllButton = document.getElementById("resetAllCustomButton");
+      if (resetAllButton) {
+        resetAllButton.addEventListener("click", () => {
+          const confirmed = window.confirm("Weet je zeker dat je alle eigen oefeningen wilt verwijderen en terug wilt naar de standaardlijsten?");
+          if (!confirmed) {
+            return;
+          }
+          state.customExercises = createDefaultCustomExercises();
+          saveState();
+          renderApp();
+          switchTab(TABS.CUSTOM);
+        });
+      }
+    }
+
     function previewNextExercise(patternKey, subcategory) {
-      const options = PROGRAM[patternKey].exercises[subcategory];
+      const options = getExerciseOptions(patternKey, subcategory);
       const key = getSubcategoryKey(patternKey, subcategory);
       const currentIndex = state.rotations.exercises[key] || 0;
       return options[currentIndex % options.length];
     }
 
     function previewNextSecondaryExercise() {
-      const options = PROGRAM.secondary.exercises;
+      const options = getExerciseOptions("secondary", "Secundair");
       const currentIndex = state.rotations.subcategories.secondary || 0;
       return options[currentIndex % options.length];
     }
@@ -2020,7 +2250,12 @@
         button.classList.toggle("active", button.getAttribute("data-tab") === tabName);
       });
       document.querySelectorAll(".view").forEach((view) => {
-        view.classList.toggle("active", view.id === (tabName === TABS.TODAY ? "todayView" : "optionsView"));
+        const targetId = tabName === TABS.TODAY
+          ? "todayView"
+          : tabName === TABS.OPTIONS
+            ? "optionsView"
+            : "customView";
+        view.classList.toggle("active", view.id === targetId);
       });
     }
 
@@ -2029,6 +2264,7 @@
       updateHero();
       renderToday();
       renderOptions();
+      renderCustomExercises();
       switchTab(activeTab || TABS.TODAY);
       updateTimerDisplay();
     }
