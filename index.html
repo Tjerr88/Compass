@@ -3,26 +3,29 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Session Compas</title>
+  <title>Compass</title>
   <style>
     :root {
-      --bg: #edf1ee;
-      --bg-accent: #e4ebe6;
-      --surface: rgba(255, 255, 255, 0.96);
-      --surface-strong: #ffffff;
-      --surface-soft: #f6f8f7;
-      --text: #182722;
-      --muted: #61736c;
-      --line: rgba(24, 39, 34, 0.10);
-      --line-strong: rgba(24, 39, 34, 0.16);
-      --shadow: 0 24px 60px rgba(19, 33, 28, 0.08);
-      --shadow-soft: 0 12px 32px rgba(19, 33, 28, 0.06);
-      --primary: #284f43;
-      --primary-strong: #1d3d34;
-      --primary-soft: rgba(40, 79, 67, 0.08);
-      --success: #317857;
-      --warning: #a56b32;
-      --danger: #ad5a5a;
+      --bg: #e7dece;
+      --bg-accent: #d8ccb5;
+      --surface: rgba(251, 247, 239, 0.94);
+      --surface-strong: #f7f1e4;
+      --surface-soft: #efe5d3;
+      --text: #2f2a22;
+      --muted: #6f6557;
+      --line: rgba(74, 58, 36, 0.14);
+      --line-strong: rgba(74, 58, 36, 0.24);
+      --shadow: 0 26px 60px rgba(67, 52, 31, 0.10);
+      --shadow-soft: 0 14px 34px rgba(67, 52, 31, 0.08);
+      --primary: #55624a;
+      --primary-strong: #384437;
+      --primary-soft: rgba(85, 98, 74, 0.10);
+      --success: #567056;
+      --warning: #a0713f;
+      --danger: #9a5f50;
+      --accent-metal: #8f744c;
+      --font-body: "Aptos", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      --font-display: "Palatino Linotype", "Book Antiqua", "Iowan Old Style", Georgia, serif;
       --radius-xl: 30px;
       --radius-lg: 24px;
       --radius-md: 18px;
@@ -42,12 +45,12 @@
     body {
       margin: 0;
       min-height: 100vh;
-      font-family: "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      font-family: var(--font-body);
       color: var(--text);
       background:
-        radial-gradient(circle at top left, rgba(40, 79, 67, 0.10), transparent 30%),
-        radial-gradient(circle at bottom right, rgba(126, 143, 134, 0.12), transparent 26%),
-        linear-gradient(180deg, #f7f9f7 0%, var(--bg) 100%);
+        radial-gradient(circle at top left, rgba(143, 116, 76, 0.12), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(85, 98, 74, 0.10), transparent 24%),
+        linear-gradient(180deg, #f1eadc 0%, var(--bg) 100%);
     }
 
     body::before {
@@ -56,9 +59,10 @@
       inset: 0;
       pointer-events: none;
       background:
-        linear-gradient(180deg, rgba(255,255,255,0.4), transparent 24%),
-        radial-gradient(circle at 20% 10%, rgba(255,255,255,0.36), transparent 18%);
-      opacity: 0.75;
+        linear-gradient(180deg, rgba(255,252,246,0.38), transparent 24%),
+        radial-gradient(circle at 20% 10%, rgba(255,248,234,0.32), transparent 18%),
+        repeating-linear-gradient(90deg, rgba(111, 101, 87, 0.028) 0 1px, transparent 1px 24px);
+      opacity: 0.9;
     }
 
     .app-shell {
@@ -71,18 +75,28 @@
     .hero {
       display: block;
       width: 100%;
-      background: linear-gradient(145deg, rgba(255,255,255,0.98), rgba(246,248,247,0.94));
-      border: 1px solid rgba(255,255,255,0.82);
+      background:
+        linear-gradient(180deg, rgba(255, 250, 242, 0.94), rgba(242, 234, 219, 0.94)),
+        linear-gradient(90deg, rgba(143, 116, 76, 0.08), rgba(85, 98, 74, 0.05));
+      border: 1px solid rgba(115, 91, 58, 0.18);
       border-radius: 22px;
       box-shadow: var(--shadow);
-      padding: 14px 16px;
-      backdrop-filter: blur(12px);
+      padding: 18px 18px 16px;
+      backdrop-filter: blur(10px);
       overflow: hidden;
       position: relative;
     }
 
     .hero::after {
-      display: none;
+      content: "";
+      position: absolute;
+      left: 18px;
+      right: 18px;
+      top: 12px;
+      height: 10px;
+      border-top: 1px solid rgba(143, 116, 76, 0.28);
+      border-bottom: 1px solid rgba(143, 116, 76, 0.18);
+      opacity: 0.9;
     }
 
     .eyebrow {
@@ -91,19 +105,23 @@
       gap: 8px;
       padding: 8px 14px;
       border-radius: 999px;
-      background: rgba(40, 79, 67, 0.08);
+      background: rgba(85, 98, 74, 0.10);
       color: var(--primary-strong);
       font-size: 0.78rem;
       font-weight: 800;
       letter-spacing: 0.10em;
       text-transform: uppercase;
+      border: 1px solid rgba(143, 116, 76, 0.18);
     }
 
     h1 {
-      margin: 14px 0 8px;
+      margin: 18px 0 10px;
+      font-family: var(--font-display);
+      font-weight: 700;
       font-size: clamp(1.9rem, 4vw, 3rem);
-      line-height: 1.05;
-      letter-spacing: -0.03em;
+      line-height: 1.08;
+      letter-spacing: -0.02em;
+      color: #2d241b;
     }
 
     .hero p {
@@ -127,11 +145,11 @@
       gap: 8px;
       padding: 8px 12px;
       border-radius: 999px;
-      background: rgba(255,255,255,0.88);
+      background: rgba(250, 245, 236, 0.92);
       border: 1px solid var(--line);
       font-size: 0.88rem;
       color: var(--text);
-      box-shadow: 0 8px 24px rgba(19, 33, 28, 0.04);
+      box-shadow: 0 8px 18px rgba(67, 52, 31, 0.05);
     }
 
     .tabs {
@@ -141,10 +159,10 @@
       margin-top: 18px;
       padding: 7px;
       border-radius: 24px;
-      background: rgba(255,255,255,0.84);
+      background: rgba(245, 237, 224, 0.88);
       border: 1px solid var(--line);
       box-shadow: var(--shadow-soft);
-      backdrop-filter: blur(10px);
+      backdrop-filter: blur(8px);
     }
 
     .tab-button {
@@ -161,9 +179,9 @@
     }
 
     .tab-button.active {
-      background: linear-gradient(135deg, #2d5a4c, var(--primary-strong));
-      color: #fff;
-      box-shadow: 0 12px 26px rgba(40, 79, 67, 0.20);
+      background: linear-gradient(135deg, #5c6a50, var(--primary-strong));
+      color: #f8f1e4;
+      box-shadow: 0 12px 26px rgba(56, 68, 55, 0.20);
     }
 
     .tab-button:active,
@@ -201,15 +219,44 @@
 
     .card {
       background: var(--surface);
-      border: 1px solid rgba(255,255,255,0.84);
+      border: 1px solid rgba(115, 91, 58, 0.14);
       border-radius: var(--radius-xl);
       box-shadow: var(--shadow-soft);
       padding: 22px;
-      backdrop-filter: blur(12px);
+      backdrop-filter: blur(10px);
     }
 
     .card.soft {
-      background: rgba(255, 255, 255, 0.90);
+      background: rgba(248, 242, 232, 0.92);
+    }
+
+    .focus-card {
+      position: relative;
+      border-color: rgba(85, 98, 74, 0.20);
+      background:
+        linear-gradient(180deg, rgba(251, 246, 238, 0.96), rgba(241, 232, 215, 0.96));
+    }
+
+    .focus-card::before {
+      content: "";
+      display: block;
+      width: 108px;
+      height: 8px;
+      margin-bottom: 10px;
+      border-top: 1px solid rgba(143, 116, 76, 0.38);
+      border-bottom: 1px solid rgba(143, 116, 76, 0.22);
+    }
+
+    .focus-card h3 {
+      margin-top: 6px;
+      margin-bottom: 8px;
+      font-family: var(--font-display);
+      font-size: 1.45rem;
+      color: #30261d;
+    }
+
+    .focus-card .subtle {
+      max-width: 70ch;
     }
 
     .card-header {
@@ -225,6 +272,8 @@
     .card h4 {
       margin: 0;
       letter-spacing: -0.02em;
+      font-family: var(--font-display);
+      font-weight: 700;
     }
 
     .subtle {
@@ -250,9 +299,9 @@
       font-size: 0.9rem;
       padding: 9px 12px;
       border-radius: 999px;
-      background: rgba(40, 79, 67, 0.07);
+      background: rgba(85, 98, 74, 0.08);
       color: var(--primary-strong);
-      border: 1px solid rgba(40, 79, 67, 0.10);
+      border: 1px solid rgba(85, 98, 74, 0.14);
     }
 
     .slot-grid {
@@ -269,9 +318,9 @@
       display: grid;
       gap: 14px;
       padding: 16px;
-      border: 1px solid rgba(24, 49, 42, 0.10);
+      border: 1px solid rgba(115, 91, 58, 0.13);
       border-radius: 22px;
-      background: rgba(255,255,255,0.58);
+      background: rgba(249, 243, 233, 0.64);
     }
 
     .group-heading {
@@ -293,18 +342,18 @@
     }
 
     .slot-card {
-      background: linear-gradient(180deg, rgba(255,255,255,0.99), rgba(247,249,248,0.98));
+      background: linear-gradient(180deg, rgba(253,250,245,0.98), rgba(242,235,223,0.96));
       border: 1px solid var(--line);
       border-radius: 24px;
       padding: 18px;
-      box-shadow: 0 10px 24px rgba(19, 33, 28, 0.05);
+      box-shadow: 0 10px 24px rgba(67, 52, 31, 0.06);
       transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
     }
 
     .slot-card:hover {
       transform: translateY(-1px);
-      box-shadow: 0 16px 30px rgba(19, 33, 28, 0.08);
-      border-color: rgba(40, 79, 67, 0.14);
+      box-shadow: 0 16px 30px rgba(67, 52, 31, 0.09);
+      border-color: rgba(85, 98, 74, 0.16);
     }
 
     .slot-top {
@@ -334,7 +383,7 @@
       flex-shrink: 0;
       padding: 8px 10px;
       border-radius: 14px;
-      background: #f5f7f6;
+      background: rgba(242, 234, 220, 0.92);
       border: 1px solid var(--line);
       font-weight: 700;
       font-size: 0.88rem;
@@ -352,7 +401,7 @@
       margin: 10px 0 0;
       padding: 10px 12px;
       border-radius: 14px;
-      background: rgba(40, 79, 67, 0.07);
+      background: rgba(85, 98, 74, 0.08);
       color: var(--primary-strong);
       font-size: 0.92rem;
     }
@@ -383,14 +432,14 @@
       padding: 14px 15px;
       font-size: 1rem;
       color: var(--text);
-      background: #fcfdfc;
+      background: rgba(255, 251, 244, 0.96);
       outline: none;
       transition: border-color var(--transition), box-shadow var(--transition);
     }
 
     input[type="text"]:focus {
-      border-color: rgba(40, 79, 67, 0.42);
-      box-shadow: 0 0 0 4px rgba(40, 79, 67, 0.08);
+      border-color: rgba(85, 98, 74, 0.42);
+      box-shadow: 0 0 0 4px rgba(85, 98, 74, 0.08);
     }
 
     textarea {
@@ -402,14 +451,14 @@
       padding: 14px 15px;
       font: inherit;
       color: var(--text);
-      background: #fcfdfc;
+      background: rgba(255, 251, 244, 0.96);
       outline: none;
       transition: border-color var(--transition), box-shadow var(--transition);
     }
 
     textarea:focus {
-      border-color: rgba(40, 79, 67, 0.42);
-      box-shadow: 0 0 0 4px rgba(40, 79, 67, 0.08);
+      border-color: rgba(85, 98, 74, 0.42);
+      box-shadow: 0 0 0 4px rgba(85, 98, 74, 0.08);
     }
 
     .nudge-controls {
@@ -432,12 +481,12 @@
       width: 44px;
       height: 44px;
       border-radius: 14px;
-      background: #ffffff;
+      background: rgba(255, 250, 243, 0.98);
       border: 1px solid var(--line);
       color: var(--text);
       font-size: 1.2rem;
       font-weight: 700;
-      box-shadow: 0 8px 18px rgba(19, 33, 28, 0.05);
+      box-shadow: 0 8px 18px rgba(67, 52, 31, 0.05);
     }
 
     .nudge-button.active-up {
@@ -479,16 +528,16 @@
     }
 
     .primary-button {
-      background: linear-gradient(135deg, #2d5a4c, var(--primary-strong));
-      color: #fff;
-      box-shadow: 0 16px 24px rgba(40, 79, 67, 0.18);
+      background: linear-gradient(135deg, #607055, var(--primary-strong));
+      color: #f7f1e4;
+      box-shadow: 0 16px 24px rgba(56, 68, 55, 0.18);
     }
 
     .secondary-button {
-      background: rgba(255,255,255,0.96);
+      background: rgba(250, 245, 236, 0.96);
       color: var(--text);
       border: 1px solid var(--line);
-      box-shadow: 0 10px 18px rgba(19, 33, 28, 0.05);
+      box-shadow: 0 10px 18px rgba(67, 52, 31, 0.05);
     }
 
     .ghost-button {
@@ -521,7 +570,7 @@
       gap: 16px;
       padding: 18px;
       border-radius: 22px;
-      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(247,249,248,0.96));
+      background: linear-gradient(180deg, rgba(253,249,243,0.98), rgba(241,234,222,0.96));
       border: 1px solid var(--line);
     }
 
@@ -562,7 +611,7 @@
     }
 
     .switch input:checked + .slider {
-      background: linear-gradient(135deg, #2d5a4c, var(--primary-strong));
+      background: linear-gradient(135deg, #607055, var(--primary-strong));
     }
 
     .switch input:checked + .slider::before {
@@ -588,9 +637,9 @@
     .mini-card {
       padding: 16px;
       border-radius: 20px;
-      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(247,249,248,0.96));
+      background: linear-gradient(180deg, rgba(253,249,243,0.98), rgba(241,234,222,0.96));
       border: 1px solid var(--line);
-      box-shadow: 0 10px 22px rgba(19, 33, 28, 0.05);
+      box-shadow: 0 10px 22px rgba(67, 52, 31, 0.05);
     }
 
     .stat-label {
@@ -983,6 +1032,9 @@
 
   <main class="app-shell">
     <section class="hero">
+      <div class="eyebrow">Daily Practice</div>
+      <h1>Compass</h1>
+      <p>Daily Practice for Strength, Health &amp; Character</p>
       <div class="hero-meta">
         <div class="pill" id="heroDayPill">Dag 1</div>
         <div class="pill" id="heroModePill">Vrije keus uit</div>
@@ -1003,6 +1055,9 @@
 
   <script>
     const STORAGE_KEY = "training-generator-v1";
+    const LS_FOCUS_BAG_KEY = "session_compass_focus_bag_v1";
+    const LS_FOCUS_DAY_KEY = "session_compass_focus_day_v1";
+    const LS_FOCUS_TODAY_KEY = "session_compass_focus_today_v1";
     const APP_VERSION = 3;
     const TABS = { TODAY: "today", OPTIONS: "options", CUSTOM: "custom" };
     const TRAINING_DAYS = [1, 3, 5];
@@ -1024,6 +1079,153 @@
     ];
 
     const GROUP_REST_OPTIONS = [60, 75, 90];
+
+    const STOIC_FOCUS_LESSONS = [
+      {
+        title: "Control the controllable.",
+        text: "Train what you can control: effort, form, breathing, rest and stopping before ego takes over."
+      },
+      {
+        title: "Do enough, not everything.",
+        text: "A good session builds you up without stealing energy from the rest of your day."
+      },
+      {
+        title: "Strong, calm, useful.",
+        text: "Train to become stronger, calmer and more useful for the people who need you."
+      },
+      {
+        title: "Progress, not perfection.",
+        text: "Today does not need to be perfect. It only needs to point you in the right direction."
+      },
+      {
+        title: "Leave energy for life.",
+        text: "The goal is not to empty yourself. The goal is to train and still be present afterwards."
+      },
+      {
+        title: "Quality is the proof.",
+        text: "Clean reps, honest effort and calm breathing matter more than chasing numbers."
+      },
+      {
+        title: "Reality first, plan second.",
+        text: "Use the plan, but listen to the body and the day in front of you."
+      },
+      {
+        title: "The first slow rep is information.",
+        text: "Do not argue with fatigue. Adjust, stop or rest before quality disappears."
+      },
+      {
+        title: "Build the body, govern the mind.",
+        text: "Every set is also practice in attention, patience and self-control."
+      },
+      {
+        title: "No ego reps.",
+        text: "Do not turn training into a negotiation with pride. Stop while the work is still clean."
+      },
+      {
+        title: "Train with nature, not against it.",
+        text: "Work with your energy, recovery and responsibilities instead of forcing the fantasy version of today."
+      },
+      {
+        title: "Patience is training.",
+        text: "Zone 2, mobility and easy work count because they build the base that supports everything else."
+      },
+      {
+        title: "Intensity without panic.",
+        text: "When the work gets hard, keep the mind quiet and the recovery deliberate."
+      },
+      {
+        title: "Recovery is discipline.",
+        text: "Rest, mobility and easy movement are not skipped training. They are part of the long game."
+      },
+      {
+        title: "Begin with the next right action.",
+        text: "You do not need motivation for the whole session. You only need to start the next useful step."
+      },
+      {
+        title: "Strength is service.",
+        text: "Train so you can carry, help, play, protect and stay useful in real life."
+      },
+      {
+        title: "Keep the mind clear.",
+        text: "Do not make the session dramatic. See the task, do the task, move on."
+      },
+      {
+        title: "Effort over outcome.",
+        text: "You do not fully control the result. You control the honesty of today’s effort."
+      },
+      {
+        title: "Small work compounds.",
+        text: "One steady session is not impressive. Many steady sessions change who you become."
+      },
+      {
+        title: "Calm is strength.",
+        text: "The more pressure you feel, the more valuable it is to breathe, slow down and choose well."
+      },
+      {
+        title: "Choose the right dose.",
+        text: "Wisdom in training is not always doing more. It is doing what today can absorb."
+      },
+      {
+        title: "Do the work in front of you.",
+        text: "Do not drift into comparison, fantasy or frustration. This rep, this breath, this choice."
+      },
+      {
+        title: "You are training for after the workout.",
+        text: "The session should make the rest of your day better, not worse."
+      },
+      {
+        title: "Consistency beats heroics.",
+        text: "A sustainable session repeated often is more powerful than a perfect session that costs too much."
+      },
+      {
+        title: "The body gives feedback.",
+        text: "Soreness, energy and technique are signals. Use them before they become warnings."
+      },
+      {
+        title: "Less noise, more practice.",
+        text: "Keep the session simple. Do the basics well and let the work accumulate."
+      },
+      {
+        title: "Carry yourself well.",
+        text: "Posture, breathing and composure are part of the training, not details outside it."
+      },
+      {
+        title: "Stop before sloppy.",
+        text: "Fatigue is allowed. Sloppiness is not the goal."
+      },
+      {
+        title: "Be useful, not exhausted.",
+        text: "Dad-fit means being able to train and still show up for your life."
+      },
+      {
+        title: "Return to the practice.",
+        text: "A missed day, low score or lighter session is not failure. Come back to the next right action."
+      },
+      {
+        title: "No complaint reps.",
+        text: "If you choose to train, train. If you need to adjust, adjust. Complaining adds no value."
+      },
+      {
+        title: "Steady is strong.",
+        text: "Not every session needs to feel special. The quiet ones often do the most."
+      },
+      {
+        title: "Train the decision.",
+        text: "Every session asks the same question: can you choose wisely under fatigue, stress or ego?"
+      },
+      {
+        title: "Respect tomorrow.",
+        text: "Leave enough in reserve that tomorrow still has a chance."
+      },
+      {
+        title: "Simple done well.",
+        text: "You do not need more complexity. You need attention, quality and repetition."
+      },
+      {
+        title: "The session is a compass.",
+        text: "Use today’s training to point yourself toward the person you want to be."
+      }
+    ];
 
     const PROGRAM = {
       core: {
@@ -1433,6 +1635,130 @@
       return JSON.parse(JSON.stringify(rotations || createDefaultState().rotations));
     }
 
+    function shuffle(array) {
+      const copy = Array.isArray(array) ? array.slice() : [];
+      for (let index = copy.length - 1; index > 0; index -= 1) {
+        const swapIndex = Math.floor(Math.random() * (index + 1));
+        [copy[index], copy[swapIndex]] = [copy[swapIndex], copy[index]];
+      }
+      return copy;
+    }
+
+    function getTodayKey() {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, "0");
+      const day = String(now.getDate()).padStart(2, "0");
+      return year + "-" + month + "-" + day;
+    }
+
+    function isValidFocusLesson(value) {
+      return !!value
+        && typeof value.title === "string"
+        && value.title.trim()
+        && typeof value.text === "string"
+        && value.text.trim();
+    }
+
+    function loadFocusBag() {
+      try {
+        const raw = localStorage.getItem(LS_FOCUS_BAG_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) {
+            const validLessons = parsed.filter(isValidFocusLesson);
+            if (validLessons.length) {
+              return validLessons;
+            }
+          }
+        }
+      } catch (error) {
+        console.warn("Kon focus-bag niet laden, nieuwe bag wordt gemaakt.", error);
+      }
+
+      const freshBag = shuffle(STOIC_FOCUS_LESSONS);
+      localStorage.setItem(LS_FOCUS_BAG_KEY, JSON.stringify(freshBag));
+      return freshBag;
+    }
+
+    function drawFocus() {
+      let bag = loadFocusBag();
+      let previousFocus = null;
+
+      try {
+        const raw = localStorage.getItem(LS_FOCUS_TODAY_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (isValidFocusLesson(parsed)) {
+            previousFocus = parsed;
+          }
+        }
+      } catch (error) {
+        console.warn("Kon vorige focus niet lezen.", error);
+      }
+
+      if (!bag.length) {
+        bag = shuffle(STOIC_FOCUS_LESSONS);
+      }
+
+      if (
+        previousFocus
+        && bag.length > 1
+        && bag[0]
+        && bag[0].title === previousFocus.title
+        && bag[0].text === previousFocus.text
+      ) {
+        const swapIndex = bag.findIndex((lesson) => lesson.title !== previousFocus.title || lesson.text !== previousFocus.text);
+        if (swapIndex > 0) {
+          [bag[0], bag[swapIndex]] = [bag[swapIndex], bag[0]];
+        }
+      }
+
+      const focus = bag.shift() || STOIC_FOCUS_LESSONS[0];
+
+      if (!bag.length) {
+        bag = shuffle(STOIC_FOCUS_LESSONS);
+        if (
+          bag.length > 1
+          && bag[0]
+          && bag[0].title === focus.title
+          && bag[0].text === focus.text
+        ) {
+          const swapIndex = bag.findIndex((lesson) => lesson.title !== focus.title || lesson.text !== focus.text);
+          if (swapIndex > 0) {
+            [bag[0], bag[swapIndex]] = [bag[swapIndex], bag[0]];
+          }
+        }
+      }
+
+      localStorage.setItem(LS_FOCUS_BAG_KEY, JSON.stringify(bag));
+      return focus;
+    }
+
+    function getTodayFocus() {
+      const today = getTodayKey();
+      const cachedDay = localStorage.getItem(LS_FOCUS_DAY_KEY);
+
+      if (cachedDay === today) {
+        try {
+          const raw = localStorage.getItem(LS_FOCUS_TODAY_KEY);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (isValidFocusLesson(parsed)) {
+              return parsed;
+            }
+          }
+        } catch (error) {
+          console.warn("Kon focus van vandaag niet laden.", error);
+        }
+      }
+
+      const focus = drawFocus();
+      localStorage.setItem(LS_FOCUS_DAY_KEY, today);
+      localStorage.setItem(LS_FOCUS_TODAY_KEY, JSON.stringify(focus));
+      return focus;
+    }
+
     function getSlotPrescription(slot) {
       if (slot.patternKey === "core") {
         return "2-3 sets van 10 reps";
@@ -1668,6 +1994,17 @@
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
+    }
+
+    function renderFocusOfTheDay() {
+      const focus = getTodayFocus();
+      return `
+        <article class="card soft focus-card">
+          <p class="slot-kicker">Focus of the Day</p>
+          <h3>${escapeHtml(focus.title)}</h3>
+          <p class="subtle">${escapeHtml(focus.text)}</p>
+        </article>
+      `;
     }
 
     function formatDateTime(value) {
@@ -2008,6 +2345,7 @@
 
         view.innerHTML = `
           <div class="stack">
+            ${renderFocusOfTheDay()}
             <article class="card action-card">
               <div class="card-header">
                 <div>
@@ -2044,6 +2382,7 @@
 
       view.innerHTML = `
         <div class="stack">
+          ${renderFocusOfTheDay()}
           ${guidanceHtml}
           ${warmupHtml}
           <article class="card">
