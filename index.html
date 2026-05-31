@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1036,16 +1036,16 @@
       <h1>Compass</h1>
       <p>Daily Practice for Strength, Health &amp; Character</p>
       <div class="hero-meta">
-        <div class="pill" id="heroDayPill">Dag 1</div>
-        <div class="pill" id="heroModePill">Vrije keus uit</div>
-        <div class="pill" id="heroProgressPill">0 trainingen afgerond</div>
+        <div class="pill" id="heroDayPill">Day 1</div>
+        <div class="pill" id="heroModePill">Free choice off</div>
+        <div class="pill" id="heroProgressPill">0 sessions completed</div>
       </div>
     </section>
 
-    <nav class="tabs" aria-label="Navigatie">
-      <button class="tab-button active" data-tab="today" type="button">Vandaag</button>
-      <button class="tab-button" data-tab="options" type="button">Opties</button>
-      <button class="tab-button" data-tab="custom" type="button">Eigen Oefeningen</button>
+    <nav class="tabs" aria-label="Navigation">
+      <button class="tab-button active" data-tab="today" type="button">Today</button>
+      <button class="tab-button" data-tab="options" type="button">Options</button>
+      <button class="tab-button" data-tab="custom" type="button">Custom Exercises</button>
     </nav>
 
     <section class="view active" id="todayView"></section>
@@ -1058,17 +1058,25 @@
     const LS_FOCUS_BAG_KEY = "session_compass_focus_bag_v1";
     const LS_FOCUS_DAY_KEY = "session_compass_focus_day_v1";
     const LS_FOCUS_TODAY_KEY = "session_compass_focus_today_v1";
-    const APP_VERSION = 3;
+    const APP_VERSION = 4;
     const TABS = { TODAY: "today", OPTIONS: "options", CUSTOM: "custom" };
-    const TRAINING_DAYS = [1, 3, 5];
-    const DAY_CYCLE = {
-      1: { type: "training", title: "Trainingsdag", subtitle: "Core, vier main patronen en een secundair slot." },
-      2: { type: "recovery", title: "Zone 2 cardio", subtitle: "30 tot 45 minuten" },
-      3: { type: "training", title: "Trainingsdag", subtitle: "Core, vier main patronen en een secundair slot." },
-      4: { type: "recovery", title: "Rust / Active Mobility", subtitle: "Herstel, ademhaling en soepel bewegen." },
-      5: { type: "training", title: "Trainingsdag", subtitle: "Core, vier main patronen en een secundair slot." },
-      6: { type: "recovery", title: "HIIT", subtitle: "10 tot 20 minuten" },
-      7: { type: "recovery", title: "Rust / Active Mobility", subtitle: "Herstel, wandelen of rustige mobility." }
+    const RECOVERY_FIELDS = [
+      { key: "energy", label: "Energy" },
+      { key: "body", label: "Body / recovery" },
+      { key: "mind", label: "Mind / stress" }
+    ];
+    const RECOVERY_BANDS = {
+      override: { key: "override", label: "Recovery override", min: 3, max: 7 },
+      low: { key: "low", label: "Low", min: 8, max: 10 },
+      medium: { key: "medium", label: "Medium", min: 11, max: 13 },
+      high: { key: "high", label: "High", min: 14, max: 15 }
+    };
+    const SESSION_LABELS = {
+      strength: "Strength",
+      zone2: "Zone 2",
+      hiit: "HIIT",
+      recovery: "Recovery day",
+      breatheRest: "Breathe & Rest"
     };
 
     const MAIN_ORDERS = [
@@ -1082,148 +1090,148 @@
 
     const STOIC_FOCUS_LESSONS = [
       {
-        title: "Control the controllable.",
-        text: "Train what you can control: effort, form, breathing, rest and stopping before ego takes over."
+        title: "Train what is yours.",
+        text: "You do not control sleep, stress, or how heavy the weight feels. You control attention, technique, breathing, rest, and when to stop."
       },
       {
-        title: "Do enough, not everything.",
-        text: "A good session builds you up without stealing energy from the rest of your day."
+        title: "Do not borrow from the day.",
+        text: "A useful session leaves enough energy to be a father, partner, worker, and human after the workout."
       },
       {
-        title: "Strong, calm, useful.",
-        text: "Train to become stronger, calmer and more useful for the people who need you."
+        title: "The body is the first reality.",
+        text: "The plan matters, but today's body tells the truth. Adjust without drama."
       },
       {
-        title: "Progress, not perfection.",
-        text: "Today does not need to be perfect. It only needs to point you in the right direction."
+        title: "Strength is not exhaustion.",
+        text: "Training is successful when it builds capacity, not when it proves how much discomfort you can survive."
       },
       {
-        title: "Leave energy for life.",
-        text: "The goal is not to empty yourself. The goal is to train and still be present afterwards."
+        title: "Stop before character turns into ego.",
+        text: "Discipline starts the work. Ego keeps pushing after the lesson is already learned."
       },
       {
-        title: "Quality is the proof.",
-        text: "Clean reps, honest effort and calm breathing matter more than chasing numbers."
+        title: "Be strong enough to serve.",
+        text: "The point is not only muscle. The point is being able to carry, help, play, protect, and stay present."
       },
       {
-        title: "Reality first, plan second.",
-        text: "Use the plan, but listen to the body and the day in front of you."
+        title: "Choose the useful dose.",
+        text: "Too little changes nothing. Too much costs the rest of the day. Wisdom is finding the dose that builds."
       },
       {
-        title: "The first slow rep is information.",
-        text: "Do not argue with fatigue. Adjust, stop or rest before quality disappears."
+        title: "No drama under load.",
+        text: "Breathe, brace, move, rest. Do not turn a hard set into a story about yourself."
       },
       {
-        title: "Build the body, govern the mind.",
-        text: "Every set is also practice in attention, patience and self-control."
+        title: "Leave one in reserve.",
+        text: "Not because you are weak, but because tomorrow, your family, and your responsibilities still count."
       },
       {
-        title: "No ego reps.",
-        text: "Do not turn training into a negotiation with pride. Stop while the work is still clean."
+        title: "Practice calm effort.",
+        text: "The weight may be hard. Your mind does not have to be loud."
       },
       {
-        title: "Train with nature, not against it.",
-        text: "Work with your energy, recovery and responsibilities instead of forcing the fantasy version of today."
+        title: "Control the next rep.",
+        text: "The whole session is not your problem. This rep, this breath, this decision is."
       },
       {
-        title: "Patience is training.",
-        text: "Zone 2, mobility and easy work count because they build the base that supports everything else."
+        title: "Train for the man who goes home.",
+        text: "The workout is only part of the day. Make sure the version of you after training is still useful."
       },
       {
-        title: "Intensity without panic.",
-        text: "When the work gets hard, keep the mind quiet and the recovery deliberate."
+        title: "Do the ordinary work well.",
+        text: "Most progress comes from repeating simple things with attention, not from chasing special sessions."
       },
       {
-        title: "Recovery is discipline.",
-        text: "Rest, mobility and easy movement are not skipped training. They are part of the long game."
+        title: "Respect fatigue as information.",
+        text: "Fatigue is not failure. It tells you when to rest, adjust, or finish clean."
       },
       {
-        title: "Begin with the next right action.",
-        text: "You do not need motivation for the whole session. You only need to start the next useful step."
+        title: "The session is not a punishment.",
+        text: "Do not train to pay for food, stress, guilt, or frustration. Train to build capacity."
       },
       {
-        title: "Strength is service.",
-        text: "Train so you can carry, help, play, protect and stay useful in real life."
+        title: "Be firm, not reckless.",
+        text: "Courage is starting the work. Temperance is knowing when enough work has been done."
       },
       {
-        title: "Keep the mind clear.",
-        text: "Do not make the session dramatic. See the task, do the task, move on."
+        title: "Keep your promises small and real.",
+        text: "A completed sensible session is worth more than an ambitious plan abandoned or forced."
       },
       {
-        title: "Effort over outcome.",
-        text: "You do not fully control the result. You control the honesty of today’s effort."
+        title: "Make strength usable.",
+        text: "If training makes you less patient, less present, or less capable afterwards, the dose was wrong."
       },
       {
-        title: "Small work compounds.",
-        text: "One steady session is not impressive. Many steady sessions change who you become."
+        title: "The first slow rep speaks.",
+        text: "When quality drops, listen. The goal is training, not arguing with the signal."
       },
       {
-        title: "Calm is strength.",
-        text: "The more pressure you feel, the more valuable it is to breathe, slow down and choose well."
+        title: "Build capacity quietly.",
+        text: "Zone 2, mobility, and clean submaximal work are not filler. They are the base that lets you keep going."
       },
       {
-        title: "Choose the right dose.",
-        text: "Wisdom in training is not always doing more. It is doing what today can absorb."
+        title: "Be the same man under pressure.",
+        text: "Heavy sets and hard intervals are practice in staying composed when the body wants noise."
       },
       {
-        title: "Do the work in front of you.",
-        text: "Do not drift into comparison, fantasy or frustration. This rep, this breath, this choice."
+        title: "Use the plan, do not obey it blindly.",
+        text: "A plan gives direction. Wisdom decides how much of it belongs to today."
       },
       {
-        title: "You are training for after the workout.",
-        text: "The session should make the rest of your day better, not worse."
+        title: "Train so life gets easier.",
+        text: "Stairs, kids, groceries, work, hikes, sleep, mood: the session should serve real life."
       },
       {
-        title: "Consistency beats heroics.",
-        text: "A sustainable session repeated often is more powerful than a perfect session that costs too much."
+        title: "Progress is returning.",
+        text: "A lighter day, missed day, or recovery day does not break the practice. Return to the next useful action."
       },
       {
-        title: "The body gives feedback.",
-        text: "Soreness, energy and technique are signals. Use them before they become warnings."
+        title: "Earn the right to continue.",
+        text: "Clean reps, stable joints, calm breath, and energy left over are signs you can build from here."
       },
       {
-        title: "Less noise, more practice.",
-        text: "Keep the session simple. Do the basics well and let the work accumulate."
+        title: "Do not chase the feeling.",
+        text: "A workout does not need to feel epic to be effective. Quiet work still counts."
       },
       {
-        title: "Carry yourself well.",
-        text: "Posture, breathing and composure are part of the training, not details outside it."
+        title: "Train the choice.",
+        text: "Every session asks whether you can choose quality over ego, patience over haste, and consistency over drama."
       },
       {
-        title: "Stop before sloppy.",
-        text: "Fatigue is allowed. Sloppiness is not the goal."
+        title: "Strong today, available later.",
+        text: "Dad-fit means you can train hard enough to improve and still be available when life asks for you."
       },
       {
-        title: "Be useful, not exhausted.",
-        text: "Dad-fit means being able to train and still show up for your life."
+        title: "Let the work be enough.",
+        text: "Do the sets, take the rests, finish clean. You do not need to add suffering to make it count."
       },
       {
-        title: "Return to the practice.",
-        text: "A missed day, low score or lighter session is not failure. Come back to the next right action."
+        title: "Carry strength into life.",
+        text: "The real test is not the last set. It is how you move, speak, help, and recover afterwards."
       },
       {
-        title: "No complaint reps.",
-        text: "If you choose to train, train. If you need to adjust, adjust. Complaining adds no value."
+        title: "Simple is not easy.",
+        text: "Showing up, choosing the right dose, and repeating clean work is simple. That is why it works."
       },
       {
-        title: "Steady is strong.",
-        text: "Not every session needs to feel special. The quiet ones often do the most."
+        title: "Be useful, not spent.",
+        text: "The aim is not to be destroyed by training. The aim is to become harder to destroy by life."
       },
       {
-        title: "Train the decision.",
-        text: "Every session asks the same question: can you choose wisely under fatigue, stress or ego?"
+        title: "Accept today, train anyway.",
+        text: "You do not need perfect energy or perfect circumstances. You need an honest adjustment and a useful action."
       },
       {
-        title: "Respect tomorrow.",
-        text: "Leave enough in reserve that tomorrow still has a chance."
+        title: "The long game is the discipline.",
+        text: "One heroic session is easy to admire. Years of sensible work are harder, and more valuable."
       },
       {
-        title: "Simple done well.",
-        text: "You do not need more complexity. You need attention, quality and repetition."
+        title: "Strength without self-command is noise.",
+        text: "Load, speed, and effort only matter when they are governed by judgment."
       },
       {
-        title: "The session is a compass.",
-        text: "Use today’s training to point yourself toward the person you want to be."
+        title: "Finish as someone you respect.",
+        text: "End the session having acted with control, effort, and restraint. That is the real win."
       }
     ];
 
@@ -1294,7 +1302,7 @@
         }
       },
       secondary: {
-        label: "Secundair",
+        label: "Secondary",
         exercises: ["Lateral Raise", "Bayesian Curl", "Overhead Tricep Extension", "Calf Raise"]
       }
     };
@@ -1422,14 +1430,11 @@
     function createDefaultState() {
       return {
         appVersion: APP_VERSION,
-        currentDay: 1,
-        totalDayAdvances: 0,
         trainingSessionsCompleted: 0,
         settings: {
-          freeChoice: false,
-          hiitAsDay: true,
-          strengthMode: false
+          freeChoice: false
         },
+        recoveryCheckins: {},
         rotations: {
           mainOrderIndex: 0,
           subcategories: {
@@ -1524,6 +1529,10 @@
           ...base.settings,
           ...(saved.settings || {})
         },
+        recoveryCheckins: {
+          ...base.recoveryCheckins,
+          ...(saved.recoveryCheckins || {})
+        },
         rotations: {
           ...base.rotations,
           ...(saved.rotations || {}),
@@ -1614,9 +1623,6 @@
         history: Array.isArray(saved.history) ? saved.history : [],
         currentWorkout: saved.currentWorkout || null
       };
-      if (!TRAINING_DAYS.includes(merged.currentDay)) {
-        merged.currentWorkout = null;
-      }
       if (saved.appVersion !== APP_VERSION) {
         if (merged.currentWorkout && merged.currentWorkout.rotationSnapshot) {
           merged.rotations = cloneRotations(merged.currentWorkout.rotationSnapshot);
@@ -1770,7 +1776,7 @@
     }
 
     function resetCurrentWorkoutWithLatestExercises() {
-      if (!state.currentWorkout || state.currentWorkout.day !== state.currentDay || !isTrainingDay(state.currentDay)) {
+      if (!state.currentWorkout) {
         return false;
       }
 
@@ -1783,23 +1789,242 @@
       return true;
     }
 
-    function dayLabel(day) {
-      return "Dag " + day;
+    function createDefaultRecoveryCheckin() {
+      return {
+        energy: 3,
+        body: 3,
+        mind: 3,
+        submittedAt: null
+      };
     }
 
-    function getDayConfig(day) {
-      if (day === 6 && !state.settings.hiitAsDay) {
+    function getTodayRecoveryCheckin() {
+      return state.recoveryCheckins[getTodayKey()] || null;
+    }
+
+    function getRecoveryTotal(checkin) {
+      return RECOVERY_FIELDS.reduce((sum, field) => sum + Number(checkin[field.key] || 0), 0);
+    }
+
+    function getRecoveryBand(total) {
+      if (total <= RECOVERY_BANDS.override.max) {
+        return RECOVERY_BANDS.override;
+      }
+      if (total <= RECOVERY_BANDS.low.max) {
+        return RECOVERY_BANDS.low;
+      }
+      if (total <= RECOVERY_BANDS.medium.max) {
+        return RECOVERY_BANDS.medium;
+      }
+      return RECOVERY_BANDS.high;
+    }
+
+    function getLocalDayStart(value) {
+      const date = new Date(value);
+      return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    }
+
+    function getDaysSinceDate(value) {
+      const msPerDay = 24 * 60 * 60 * 1000;
+      const today = getLocalDayStart(new Date());
+      const then = getLocalDayStart(value);
+      return Math.floor((today - then) / msPerDay);
+    }
+
+    function getLastCompletedSession() {
+      return state.history.find((item) => item.type !== "skip") || null;
+    }
+
+    function getLastCompletedSessionByType(sessionType) {
+      return state.history.find((item) => item.type !== "skip" && item.sessionType === sessionType) || null;
+    }
+
+    function getBaseSessionTypeFromHistory() {
+      const lastSession = getLastCompletedSession();
+      if (!lastSession || lastSession.sessionType !== "strength") {
+        return "strength";
+      }
+
+      const lastZone2 = getLastCompletedSessionByType("zone2");
+      if (!lastZone2 || getDaysSinceDate(lastZone2.completedAt) > 7) {
+        return "zone2";
+      }
+
+      const lastHiit = getLastCompletedSessionByType("hiit");
+      if (!lastHiit || getDaysSinceDate(lastHiit.completedAt) > 7) {
+        return "hiit";
+      }
+
+      return "recovery";
+    }
+
+    function getStrengthDose(bandKey) {
+      if (bandKey === "low") {
         return {
-          type: "recovery",
-          title: "Rust / Active Mobility",
-          subtitle: "HIIT zit als korte finisher na trainingsdagen."
+          title: "Minimum Strength",
+          summary: "Main A + Main B. 3 sets van 6-12 met RIR 4.",
+          guidance: [
+            "Main A and Main B.",
+            "3 sets of 6-12 per main lift.",
+            "RIR 4. Ruim stoppen voor traagheid of techniekverlies.",
+            "No core and no secondary."
+          ]
         };
       }
-      return DAY_CYCLE[day] || DAY_CYCLE[1];
+      if (bandKey === "medium") {
+        return {
+          title: "Essential Strength",
+          summary: "Core prep + Main A + Main B.",
+          guidance: [
+            "Core as an extended warm-up: 2 sets of 10-12.",
+            "Main lifts: 3-6 sets of 6-12.",
+            "Max effort within quality.",
+            "No secondary."
+          ]
+        };
+      }
+      return {
+        title: "Full Strength",
+        summary: "Core + Main A + Main B + Secondary.",
+        guidance: [
+          "Main lifts: 3-6 sets of 6-12.",
+          "Core and secondary can both be fully included.",
+          "Max effort within quality.",
+          "Build day: take volume if quality stays high."
+        ]
+      };
     }
 
-    function isTrainingDay(day) {
-      return TRAINING_DAYS.includes(day);
+    function getRecoveryDayDose(bandKey) {
+      if (bandKey === "low") {
+        return {
+          title: "Exploration",
+          summary: "Ground Force Exploration.",
+          guidance: [
+            "Keep movement easy and playful.",
+            "Unloaded, curious, and without performance pressure."
+          ]
+        };
+      }
+      if (bandKey === "medium") {
+        return {
+          title: "General Mobility",
+          summary: "Full mobility practice.",
+          guidance: [
+            "Calm, structured and recovery-focused.",
+            "Move smoothly through the mobility practice."
+          ]
+        };
+      }
+      return {
+        title: "Kettlebell Mobility",
+        summary: "Loaded mobility.",
+        guidance: [
+          "Control under light load.",
+          "Move with more control, do not force it."
+        ]
+      };
+    }
+
+    function getZone2Minutes(bandKey) {
+      return bandKey === "low" ? 20 : bandKey === "medium" ? 30 : 45;
+    }
+
+    function getHiitSetTarget(bandKey) {
+      return bandKey === "low" ? 6 : bandKey === "medium" ? 8 : 10;
+    }
+
+    function getTodayPlan() {
+      const dateKey = getTodayKey();
+      const checkin = getTodayRecoveryCheckin();
+      const baseSessionType = getBaseSessionTypeFromHistory();
+      if (!checkin || !checkin.submittedAt) {
+        return {
+          dateKey,
+          pendingCheckin: true,
+          baseSessionType
+        };
+      }
+
+      const total = getRecoveryTotal(checkin);
+      const band = getRecoveryBand(total);
+      if (band.key === "override") {
+        return {
+          dateKey,
+          checkin,
+          total,
+          band,
+          baseSessionType,
+          effectiveSessionType: "breatheRest",
+          title: "Breathe & Rest",
+          subtitle: "Below 8, recovery always wins.",
+          summary: "Today, recovery is the training."
+        };
+      }
+
+      if (baseSessionType === "strength") {
+        const dose = getStrengthDose(band.key);
+        return {
+          dateKey,
+          checkin,
+          total,
+          band,
+          baseSessionType,
+          effectiveSessionType: "strength",
+          title: dose.title,
+          subtitle: dose.summary,
+          summary: "Usage sets the direction. Recovery sets the dose.",
+          strengthDose: dose
+        };
+      }
+
+      if (baseSessionType === "zone2") {
+        const minutes = getZone2Minutes(band.key);
+        return {
+          dateKey,
+          checkin,
+          total,
+          band,
+          baseSessionType,
+          effectiveSessionType: "zone2",
+          title: "Zone 2",
+          subtitle: minutes + " minutes of easy cardio.",
+          summary: "Zone 2 is dosed based on recovery.",
+          zone2Minutes: minutes
+        };
+      }
+
+      if (baseSessionType === "hiit") {
+        const hiitSets = getHiitSetTarget(band.key);
+        return {
+          dateKey,
+          checkin,
+          total,
+          band,
+          baseSessionType,
+          effectiveSessionType: "hiit",
+          title: "HIIT",
+          subtitle: hiitSets + " sets today.",
+          summary: band.key === "low"
+            ? "If the warm-up feels off, switch to Breathe & Rest or Exploration."
+            : "Short, sharp output within quality.",
+          hiitSets
+        };
+      }
+
+      const recoveryDose = getRecoveryDayDose(band.key);
+      return {
+        dateKey,
+        checkin,
+        total,
+        band,
+        baseSessionType,
+        effectiveSessionType: "recovery",
+        title: recoveryDose.title,
+        subtitle: recoveryDose.summary,
+        summary: "Recovery day comes from your logbook; the score chooses the format.",
+        recoveryDose
+      };
     }
 
     function getSubcategoryKey(patternKey, subcategory) {
@@ -1848,7 +2073,7 @@
     }
 
     function getNextSecondaryExercise() {
-      const options = getExerciseOptions("secondary", "Secundair");
+      const options = getExerciseOptions("secondary", "Secondary");
       const currentIndex = state.rotations.subcategories.secondary || 0;
       const exercise = options[currentIndex % options.length];
       state.rotations.subcategories.secondary = currentIndex + 1;
@@ -1870,12 +2095,12 @@
         return "";
       }
       if (pendingNudge === "up") {
-        return "Vorige keer: " + lastValue + " — probeer iets zwaarder";
+        return "Last time: " + lastValue + " — probeer iets zwaarder";
       }
       if (pendingNudge === "down") {
-        return "Vorige keer: " + lastValue + " — probeer iets lichter";
+        return "Last time: " + lastValue + " — probeer iets lichter";
       }
-      return "Vorige keer: " + lastValue;
+      return "Last time: " + lastValue;
     }
 
     function createAutoSlot(id, slotType, patternKey, titleOverride) {
@@ -1902,7 +2127,7 @@
 
     function createFreeChoiceSlot(id, slotType, patternKey, titleOverride) {
       const pattern = PROGRAM[patternKey];
-      const subcategory = patternKey === "secondary" ? "Secundair" : getNextSubcategory(patternKey);
+      const subcategory = patternKey === "secondary" ? "Secondary" : getNextSubcategory(patternKey);
       return {
         id,
         slotType,
@@ -1918,7 +2143,7 @@
 
     function createSecondarySlot(id, freeChoiceMode) {
       if (freeChoiceMode) {
-        return createFreeChoiceSlot(id, "secondary", "secondary", "Secundair");
+        return createFreeChoiceSlot(id, "secondary", "secondary", "Secondary");
       }
       const exercise = getNextSecondaryExercise();
       const record = getExerciseRecord(exercise);
@@ -1926,8 +2151,8 @@
         id,
         slotType: "secondary",
         patternKey: "secondary",
-        label: "Secundair",
-        subcategory: "Secundair",
+        label: "Secondary",
+        subcategory: "Secondary",
         exercise,
         previousText: buildPreviousText(record.lastValue, record.pendingNudge),
         inputValue: record.lastValue || "",
@@ -1943,13 +2168,13 @@
       return order;
     }
 
-    function ensureCurrentWorkout() {
-      if (!isTrainingDay(state.currentDay)) {
+    function ensureCurrentWorkout(plan) {
+      if (!plan || plan.effectiveSessionType !== "strength") {
         state.currentWorkout = null;
         return;
       }
 
-      if (state.currentWorkout && state.currentWorkout.day === state.currentDay) {
+      if (state.currentWorkout && state.currentWorkout.planDate === plan.dateKey) {
         return;
       }
 
@@ -1977,7 +2202,7 @@
 
       state.currentWorkout = {
         id: "workout-" + Date.now(),
-        day: state.currentDay,
+        planDate: plan.dateKey,
         generatedAt: new Date().toISOString(),
         freeChoiceMode,
         rotationSnapshot,
@@ -2018,26 +2243,20 @@
       }
     }
 
-    function nextDayValue(day) {
-      return day === 7 ? 1 : day + 1;
-    }
-
     function getCurrentHiitOption() {
-      return formatHiitPlan(getCurrentHiitPlan(false));
+      return formatHiitPlan(getCurrentHiitPlan());
     }
 
-    function getCurrentEmbeddedHiitOption() {
-      return formatHiitPlan(getCurrentHiitPlan(true));
-    }
-
-    function getCurrentHiitPlan(halved) {
+    function getCurrentHiitPlan() {
       const currentIndex = state.rotations.subcategories.hiit || 0;
       const plan = HIIT_PLANS[currentIndex % HIIT_PLANS.length];
+      const todayPlan = getTodayPlan();
+      const targetSets = todayPlan.hiitSets || 8;
       return {
         ...plan,
         optionIndex: currentIndex % HIIT_PLANS.length,
-        mode: halved ? "half" : "full",
-        targetSets: halved ? plan.halfSets : plan.fullSets
+        mode: "full",
+        targetSets
       };
     }
 
@@ -2309,57 +2528,110 @@
       }
     }
 
-    function renderToday() {
-      ensureCurrentWorkout();
-      const view = document.getElementById("todayView");
-      const day = state.currentDay;
-      const config = getDayConfig(day);
+    function renderRecoveryGate(plan) {
+      const draft = getTodayRecoveryCheckin() || createDefaultRecoveryCheckin();
+      const sliderRows = RECOVERY_FIELDS.map((field) => `
+        <label class="mini-card" style="display:grid; gap:10px;">
+          <div style="display:flex; justify-content:space-between; gap:12px; align-items:center;">
+            <strong>${escapeHtml(field.label)}</strong>
+            <span id="recoveryValue-${escapeHtml(field.key)}">${escapeHtml(draft[field.key] || 3)}</span>
+          </div>
+          <input
+            type="range"
+            min="1"
+            max="5"
+            step="1"
+            value="${escapeHtml(draft[field.key] || 3)}"
+            data-action="recovery-slider"
+            data-key="${escapeHtml(field.key)}"
+          >
+        </label>
+      `).join("");
 
-      /*
-        <article class="card day-banner">
+      const nextLabel = SESSION_LABELS[plan.baseSessionType] || "Session";
+      return `
+        <article class="card action-card">
           <div class="card-header">
             <div>
-              <h2>${escapeHtml(dayLabel(day))} · ${escapeHtml(config.title)}</h2>
-              <p class="subtle">${escapeHtml(config.subtitle)}</p>
+              <h3>Recovery screen</h3>
+              <p class="subtle">Score recovery first, then Compass shows your session.</p>
             </div>
-            <div class="slot-chip">${isTrainingDay(day) ? "Trainen" : "Herstel"}</div>
+            <div class="slot-chip">1-5 per domein</div>
           </div>
-          <div class="day-badges">
-            <div class="badge">Volgende dag: ${escapeHtml(dayLabel(nextDayValue(day)))}</div>
-            <div class="badge">Vrije keus: ${state.settings.freeChoice ? "aan" : "uit"}</div>
-            <div class="badge">Trainingen afgerond: ${state.trainingSessionsCompleted}</div>
+          <div class="stats-grid">
+            ${sliderRows}
+          </div>
+          <div class="mini-card" style="margin-top:16px;">
+            <div class="slot-kicker">Verwachte richting</div>
+            <strong>${escapeHtml(nextLabel)}</strong>
+            <p class="subtle">Usage sets the direction. Recovery sets the dose.</p>
+          </div>
+          <div class="button-row" style="margin-top:16px;">
+            <button class="primary-button" type="button" id="startSessionButton">Toon sessie</button>
           </div>
         </article>
-      */
+      `;
+    }
 
-      if (!isTrainingDay(day)) {
-        let valueLine = config.title;
-        if (day === 2) {
-          valueLine = "Zone 2 cardio - 30 tot 45 minuten";
-        } else if (day === 6 && state.settings.hiitAsDay) {
-          valueLine = getCurrentHiitOption();
-        } else {
-          valueLine = "Rust / Active Mobility";
-        }
-        const hiitDayHtml = day === 6 && state.settings.hiitAsDay ? renderHiitCard(false) : "";
+    function renderRecoverySnapshot(plan) {
+      return `
+        <article class="card soft">
+          <div class="card-header">
+            <div>
+              <h3>Recovery score</h3>
+              <p class="subtle">${escapeHtml(plan.band.label)} · ${plan.total}/15</p>
+            </div>
+            <button class="ghost-button" type="button" id="editRecoveryButton">Edit score</button>
+          </div>
+          <div class="day-badges">
+            ${RECOVERY_FIELDS.map((field) => `<div class="badge">${escapeHtml(field.label)}: ${escapeHtml(plan.checkin[field.key])}</div>`).join("")}
+          </div>
+        </article>
+      `;
+    }
+
+    function renderToday() {
+      const view = document.getElementById("todayView");
+      const plan = getTodayPlan();
+      ensureCurrentWorkout(plan);
+
+      if (plan.pendingCheckin) {
+        view.innerHTML = `
+          <div class="stack">
+            ${renderFocusOfTheDay()}
+            ${renderRecoveryGate(plan)}
+          </div>
+        `;
+        bindRecoveryGateControls();
+        return;
+      }
+
+      if (plan.effectiveSessionType !== "strength") {
+        const actionValue = plan.effectiveSessionType === "zone2"
+          ? plan.zone2Minutes + " minuten"
+          : plan.effectiveSessionType === "hiit"
+            ? getCurrentHiitOption()
+            : plan.title;
+        const hiitHtml = plan.effectiveSessionType === "hiit" ? renderHiitCard() : "";
 
         view.innerHTML = `
           <div class="stack">
             ${renderFocusOfTheDay()}
+            ${renderRecoverySnapshot(plan)}
             <article class="card action-card">
               <div class="card-header">
                 <div>
-                  <h3>${escapeHtml(config.title)}</h3>
-                  <p class="subtle">${escapeHtml(config.subtitle)}</p>
+                  <h3>${escapeHtml(plan.title)}</h3>
+                  <p class="subtle">${escapeHtml(plan.subtitle)}</p>
                 </div>
+                <div class="slot-chip">${escapeHtml(SESSION_LABELS[plan.effectiveSessionType])}</div>
               </div>
-              <div class="action-value">${escapeHtml(valueLine)}</div>
-              ${hiitDayHtml}
-              ${renderRecoveryGuidance(day)}
-              <p class="subtle">Rond deze dag af met Dag afronden, of sla hem stil over zonder confetti. Daarna ga je door naar de volgende dag in de 7-daagse cyclus.</p>
+              <div class="action-value">${escapeHtml(actionValue)}</div>
+              ${hiitHtml}
+              ${renderRecoveryGuidance(plan)}
               <div class="button-row">
-                <button class="primary-button" type="button" id="finishRecoveryButton">Dag afronden</button>
-                <button class="secondary-button" type="button" id="skipDayButton">Sla over</button>
+                <button class="primary-button" type="button" id="finishRecoveryButton">Complete session</button>
+                <button class="secondary-button" type="button" id="skipDayButton">Skip</button>
               </div>
             </article>
           </div>
@@ -2367,54 +2639,80 @@
         bindWorkoutControls();
         document.getElementById("finishRecoveryButton").addEventListener("click", handleFinishRecoveryDay);
         document.getElementById("skipDayButton").addEventListener("click", handleSkipDay);
+        const editButton = document.getElementById("editRecoveryButton");
+        if (editButton) {
+          editButton.addEventListener("click", handleEditRecoveryCheckin);
+        }
         return;
       }
 
       const workout = state.currentWorkout;
-      const groupsHtml = renderTrainingGroups(workout);
-      const guidanceHtml = renderGuidanceAccordion();
+      const groupsHtml = renderTrainingGroups(workout, plan);
+      const guidanceHtml = renderGuidanceAccordion(plan);
       const warmupHtml = renderWarmupAccordion();
       const cooldownHtml = renderCooldownAccordion();
-      const hiitFinisherHtml = state.settings.hiitAsDay ? "" : renderEmbeddedHiitCard();
       const modeNote = workout.freeChoiceMode
-        ? `<p class="muted-note">Vrije keus staat aan voor deze sessie: je ziet per slot alleen patroon en subcategorie, zonder gewichtsveld of nudge-knoppen.</p>`
+        ? `<p class="muted-note">Free choice is on for this session: each slot shows only the pattern and subcategory, without load fields or nudge buttons.</p>`
         : "";
 
       view.innerHTML = `
         <div class="stack">
           ${renderFocusOfTheDay()}
+          ${renderRecoverySnapshot(plan)}
           ${guidanceHtml}
           ${warmupHtml}
           <article class="card">
             <div class="card-header">
               <div>
-                <h3>Vandaag</h3>
+                <h3>${escapeHtml(plan.strengthDose.title)}</h3>
+                <p class="subtle">${escapeHtml(plan.strengthDose.summary)}</p>
               </div>
-              <div class="slot-chip">Sessie ${state.trainingSessionsCompleted + 1}</div>
+              <div class="slot-chip">Session ${state.trainingSessionsCompleted + 1}</div>
             </div>
             ${groupsHtml}
-            ${hiitFinisherHtml}
             ${modeNote}
             ${cooldownHtml}
             <div class="button-row">
-              <button class="primary-button" type="button" id="finishWorkoutButton">Dag afronden</button>
+              <button class="primary-button" type="button" id="finishWorkoutButton">Complete session</button>
+              <button class="secondary-button" type="button" id="skipDayButton">Skip</button>
             </div>
           </article>
         </div>
       `;
 
       bindWorkoutControls();
+      document.getElementById("skipDayButton").addEventListener("click", handleSkipDay);
+      document.getElementById("editRecoveryButton").addEventListener("click", handleEditRecoveryCheckin);
     }
 
-    function renderTrainingGroups(workout) {
+    function renderTrainingGroups(workout, plan) {
       const coreSlot = workout.slots.find((slot) => slot.slotType === "core");
       const mainSlots = workout.slots.filter((slot) => slot.slotType === "main");
       const secondarySlot = workout.slots.find((slot) => slot.slotType === "secondary");
+      const showCore = plan.band.key !== "low";
+      const showSecondary = plan.band.key === "high";
+      const supportSlots = [];
+
+      if (showCore && coreSlot) {
+        supportSlots.push(coreSlot);
+      }
+      if (showSecondary && secondarySlot) {
+        supportSlots.push(secondarySlot);
+      }
+
       const groups = [
-        { id: "groupA", title: "Groepering A", subtitle: "Eerste twee hoofdpatronen", slots: mainSlots.slice(0, 2) },
-        { id: "groupB", title: "Groepering B", subtitle: "Laatste twee hoofdpatronen", slots: mainSlots.slice(2, 4) },
-        { id: "groupC", title: "Groepering C", subtitle: "Core en secundair", slots: [coreSlot, secondarySlot].filter(Boolean) }
+        { id: "groupA", title: "Main A", subtitle: "Eerste superset", slots: mainSlots.slice(0, 2) },
+        { id: "groupB", title: "Main B", subtitle: "Tweede superset", slots: mainSlots.slice(2, 4) }
       ];
+
+      if (supportSlots.length) {
+        groups.push({
+          id: "groupC",
+          title: showSecondary ? "Support" : "Core prep",
+          subtitle: showSecondary ? "Core en secundair" : "Core als verlengde warming-up",
+          slots: supportSlots
+        });
+      }
 
       return `
         <div class="group-grid">
@@ -2431,7 +2729,7 @@
               <h4>${escapeHtml(group.title)}</h4>
               <p class="subtle">${escapeHtml(group.subtitle)}</p>
             </div>
-            <div class="slot-chip">${group.slots.length} oefeningen</div>
+            <div class="slot-chip">${group.slots.length} exercises</div>
           </div>
           <div class="group-slots">
             ${group.slots.map((slot) => renderSlot(slot, freeChoiceMode)).join("")}
@@ -2447,7 +2745,7 @@
         <div class="mini-card">
           <div class="timer-row centered">
             <div>
-              <div class="slot-kicker">Rust tussen deze oefeningen</div>
+              <div class="slot-kicker">Rest between these exercises</div>
               <div class="timer-display" id="timerDisplay-${escapeHtml(timerKey)}">${formatSeconds(getRemainingSeconds(timerKey))}</div>
             </div>
           </div>
@@ -2479,18 +2777,18 @@
         : `
           <div class="slot-controls">
             <label class="input-wrap">
-              <span class="input-label">Gewicht / notitie</span>
+              <span class="input-label">Load / note</span>
               <input
                 type="text"
                 value="${escapeHtml(slot.inputValue || "")}"
-                placeholder="Bijv. 24 kg of 2x8"
+                placeholder="E.g. 24 kg or 2x8"
                 data-action="slot-input"
                 data-slot-id="${escapeHtml(slot.id)}"
               >
             </label>
             <div class="nudge-controls">
-              <button class="nudge-button ${slot.nudgeChoice === "down" ? "active-down" : ""}" type="button" data-action="nudge" data-slot-id="${escapeHtml(slot.id)}" data-direction="down" aria-label="Volgende keer iets lichter">-</button>
-              <button class="nudge-button ${slot.nudgeChoice === "up" ? "active-up" : ""}" type="button" data-action="nudge" data-slot-id="${escapeHtml(slot.id)}" data-direction="up" aria-label="Volgende keer iets zwaarder">+</button>
+              <button class="nudge-button ${slot.nudgeChoice === "down" ? "active-down" : ""}" type="button" data-action="nudge" data-slot-id="${escapeHtml(slot.id)}" data-direction="down" aria-label="A little lighter next time">-</button>
+              <button class="nudge-button ${slot.nudgeChoice === "up" ? "active-up" : ""}" type="button" data-action="nudge" data-slot-id="${escapeHtml(slot.id)}" data-direction="up" aria-label="A little heavier next time">+</button>
             </div>
           </div>
         `;
@@ -2512,27 +2810,8 @@
       `;
     }
 
-    function renderGuidanceAccordion() {
-      const guidanceItems = state.settings.strengthMode
-        ? [
-            "Train elke set tot ongeveer <strong>1-2 RIR</strong>.",
-            "Werk binnen <strong>3-6 reps</strong>.",
-            "<strong>Minimaal 3 sets</strong>, maximaal <strong>6 sets</strong>.",
-            "Onder <strong>3 reps</strong> binnen de eerste 3 sets = <strong>gewicht omlaag</strong>.",
-            "Meer dan <strong>6 x 6</strong> mogelijk = <strong>gewicht omhoog</strong>.",
-            "Zolang je in de range blijft, <strong>voeg je sets toe</strong>.",
-            "Stop zodra je <strong>onder de minimale reps</strong> valt.",
-            "Rust ongeveer <strong>2-5 minuten</strong> tussen sets."
-          ]
-        : [
-            "Train elke set tot ongeveer <strong>1 RIR</strong>.",
-            "Werk binnen <strong>6-12 reps</strong>.",
-            "<strong>Minimaal 3 sets</strong>, maximaal <strong>6 sets</strong>.",
-            "Onder <strong>6 reps</strong> binnen de eerste 3 sets = <strong>gewicht omlaag</strong>.",
-            "Meer dan <strong>6 x 12</strong> mogelijk = <strong>gewicht omhoog</strong>.",
-            "Zolang je in de range blijft, <strong>voeg je sets toe</strong>.",
-            "Stop zodra je <strong>buiten de range</strong> valt."
-          ];
+    function renderGuidanceAccordion(plan) {
+      const guidanceItems = plan.strengthDose.guidance;
 
       return `
         <article class="card soft">
@@ -2581,8 +2860,8 @@
       `;
     }
 
-    function renderHiitCard(halved) {
-      const plan = getCurrentHiitPlan(halved);
+    function renderHiitCard() {
+      const plan = getCurrentHiitPlan();
       prepareHiitSession(plan);
       const timer = state.hiit.timer;
       const weightValue = state.hiit.weights[getHiitSessionKey(plan)] || "";
@@ -2590,23 +2869,23 @@
       const phaseLabel = timer.phase === "work"
         ? "Werk"
         : timer.phase === "rest"
-          ? "Rust"
+          ? "Rest"
           : timer.phase === "done"
-            ? "Klaar"
-            : "Klaar voor set";
+            ? "Done"
+            : "Ready for set";
       const startLabel = timer.running
         ? "Timer loopt"
         : timer.phase === "rest"
           ? "Start rust"
           : state.hiit.setsDone >= plan.targetSets
-            ? "Reset en start"
+            ? "Reset and start"
             : "Start set";
 
       return `
         <article class="slot-card hiit-panel">
           <div class="slot-top">
             <div>
-              <p class="slot-kicker">${halved ? "HIIT Finisher" : "HIIT"}</p>
+              <p class="slot-kicker">HIIT</p>
               <h4 class="slot-title">${escapeHtml(plan.name)}</h4>
               <p class="exercise-name">${escapeHtml(formatHiitPlan(plan))}</p>
             </div>
@@ -2614,21 +2893,21 @@
           </div>
           <div class="hiit-controls">
             <label class="input-wrap">
-              <span class="input-label">Gewicht / notitie</span>
+              <span class="input-label">Load / note</span>
               <input
                 type="text"
                 value="${escapeHtml(weightValue)}"
-                placeholder="Bijv. 24 kg, slee +40 kg"
+                placeholder="E.g. 24 kg, sled +40 kg"
                 data-action="hiit-weight"
               >
             </label>
             <label class="input-wrap">
-              <span class="input-label">Rust (sec)</span>
+              <span class="input-label">Rest (sec)</span>
               <input
                 type="text"
                 inputmode="numeric"
                 value="${escapeHtml(restSeconds)}"
-                placeholder="Bijv. 75"
+                placeholder="E.g. 75"
                 data-action="hiit-rest-duration"
               >
             </label>
@@ -2642,19 +2921,15 @@
               </div>
               <div class="button-row">
                 <button class="primary-button" type="button" data-action="hiit-start" ${timer.running ? "disabled" : ""}>${escapeHtml(startLabel)}</button>
-                <button class="secondary-button" type="button" data-action="hiit-rest" ${timer.running || state.hiit.setsDone >= plan.targetSets ? "disabled" : ""}>Rust</button>
+                <button class="secondary-button" type="button" data-action="hiit-rest" ${timer.running || state.hiit.setsDone >= plan.targetSets ? "disabled" : ""}>Rest</button>
                 <button class="secondary-button" type="button" data-action="hiit-stop">Stop</button>
                 <button class="ghost-button" type="button" data-action="hiit-reset">Reset sets</button>
               </div>
             </div>
           </div>
-          <div class="nudge-line">Wake-lock blijft actief zolang de HIIT-timer loopt. Elke fase eindigt met een duidelijke beep.</div>
+          <div class="nudge-line">Wake lock stays active while the HIIT timer is running. Each phase ends with a clear beep.</div>
         </article>
       `;
-    }
-
-    function renderEmbeddedHiitCard() {
-      return renderHiitCard(true);
     }
 
     function formatExerciseListForEditor(list) {
@@ -2676,16 +2951,30 @@
       return formatExerciseListForEditor(getExerciseOptions(patternKey, subcategory));
     }
 
-    function renderRecoveryGuidance(day) {
-      const content = RECOVERY_CONTENT[day];
-      if (!content) {
-        return "";
-      }
-      const summaryLabel = day === 2
-        ? "Cardio richtlijnen"
-        : "Hersteloptie";
+    function renderRecoveryGuidance(plan) {
+      let sections = [];
+      let summaryLabel = "Richtlijnen";
 
-      const sectionsHtml = content.sections.map((section) => `
+      if (plan.effectiveSessionType === "breatheRest") {
+        sections = [
+          { heading: "Today", items: ["Breathing.", "Rest.", "Optionally take an easy walk if that naturally feels good."] }
+        ];
+      } else if (plan.effectiveSessionType === "zone2") {
+        sections = [
+          { heading: "Zone 2", items: [plan.zone2Minutes + " minutes of easy cardio.", "Keep it at conversation pace.", "Do not eat into recovery."] }
+        ];
+      } else if (plan.effectiveSessionType === "hiit") {
+        sections = [
+          { heading: "HIIT", items: [plan.hiitSets + " sets.", "Quality over violence.", "Voelt de warming-up slecht, switch naar Breathe & Rest of Exploration."] }
+        ];
+      } else if (plan.effectiveSessionType === "recovery") {
+        summaryLabel = "Recovery day";
+        sections = [
+          { heading: plan.recoveryDose.title, items: plan.recoveryDose.guidance }
+        ];
+      }
+
+      const sectionsHtml = sections.map((section) => `
         <div class="mini-card" style="margin-top: 12px;">
           <h4>${escapeHtml(section.heading)}</h4>
           <ul class="detail-list">
@@ -2696,7 +2985,7 @@
 
       return `
         <details class="accordion" style="margin-top: 16px;">
-          <summary>${escapeHtml(summaryLabel)}: ${escapeHtml(content.title)}</summary>
+          <summary>${escapeHtml(summaryLabel)}</summary>
           <div class="accordion-body">
             ${sectionsHtml}
           </div>
@@ -2708,27 +2997,27 @@
       const longTimer = getTimerState("long");
       const shortTimer = getTimerState("short");
       const statusText = (longTimer.running || shortTimer.running)
-        ? "De timers lopen op echte tijd en blijven daardoor correct, ook als deze pagina even niet vooraan staat."
-        : "Gebruik 3:00 voor normale rust en 1:00 voor samen trainen of supersets.";
+        ? "The timers run on real time and stay accurate, even if this page is not in front for a while."
+        : "Use 3:00 for normal rest and 1:00 for partner work or supersets.";
 
       return `
         <article class="card soft">
           <div class="card-header">
             <div>
-              <h3>Rusttimers</h3>
+              <h3>Rest timers</h3>
               <p class="subtle">${statusText}</p>
             </div>
-            <div class="slot-chip">${longTimer.running || shortTimer.running ? "Actief" : "Klaar"}</div>
+            <div class="slot-chip">${longTimer.running || shortTimer.running ? "Actief" : "Done"}</div>
           </div>
           <div class="stats-grid">
             <div class="mini-card">
               <div class="timer-row">
                 <div>
-                  <div class="slot-kicker">Normale rust</div>
+                  <div class="slot-kicker">Standard rest</div>
                   <div class="timer-display" id="timerDisplay-long">${formatSeconds(getRemainingSeconds("long"))}</div>
                 </div>
                 <div class="button-row">
-                  <button class="primary-button" type="button" id="startTimerButton-long">${longTimer.running ? "Herstart 3:00" : "Start 3:00"}</button>
+                  <button class="primary-button" type="button" id="startTimerButton-long">${longTimer.running ? "Restart 3:00" : "Start 3:00"}</button>
                   <button class="secondary-button" type="button" id="stopTimerButton-long">Stop</button>
                 </div>
               </div>
@@ -2736,11 +3025,11 @@
             <div class="mini-card">
               <div class="timer-row">
                 <div>
-                  <div class="slot-kicker">Superset / samen</div>
+                  <div class="slot-kicker">Superset / partner</div>
                   <div class="timer-display" id="timerDisplay-short">${formatSeconds(getRemainingSeconds("short"))}</div>
                 </div>
                 <div class="button-row">
-                  <button class="primary-button" type="button" id="startTimerButton-short">${shortTimer.running ? "Herstart 1:00" : "Start 1:00"}</button>
+                  <button class="primary-button" type="button" id="startTimerButton-short">${shortTimer.running ? "Restart 1:00" : "Start 1:00"}</button>
                   <button class="secondary-button" type="button" id="stopTimerButton-short">Stop</button>
                 </div>
               </div>
@@ -2782,6 +3071,41 @@
       const finishButton = document.getElementById("finishWorkoutButton");
       if (finishButton) {
         finishButton.addEventListener("click", handleFinishWorkout);
+      }
+    }
+
+    function bindRecoveryGateControls() {
+      document.querySelectorAll('[data-action="recovery-slider"]').forEach((input) => {
+        input.addEventListener("input", (event) => {
+          const key = event.target.getAttribute("data-key");
+          const value = Number(event.target.value);
+          const draft = {
+            ...createDefaultRecoveryCheckin(),
+            ...(getTodayRecoveryCheckin() || {})
+          };
+          draft[key] = value;
+          state.recoveryCheckins[getTodayKey()] = draft;
+          const label = document.getElementById("recoveryValue-" + key);
+          if (label) {
+            label.textContent = value;
+          }
+          saveState();
+        });
+      });
+
+      const startButton = document.getElementById("startSessionButton");
+      if (startButton) {
+        startButton.addEventListener("click", () => {
+          const draft = {
+            ...createDefaultRecoveryCheckin(),
+            ...(getTodayRecoveryCheckin() || {})
+          };
+          draft.submittedAt = new Date().toISOString();
+          state.recoveryCheckins[getTodayKey()] = draft;
+          saveState();
+          renderApp();
+          switchTab(TABS.TODAY);
+        });
       }
     }
 
@@ -2834,11 +3158,28 @@
       return state.currentWorkout.slots.find((slot) => slot.id === slotId) || null;
     }
 
+    function handleEditRecoveryCheckin() {
+      const todayKey = getTodayKey();
+      const current = state.recoveryCheckins[todayKey];
+      if (!current) {
+        renderApp();
+        return;
+      }
+      state.recoveryCheckins[todayKey] = {
+        ...current,
+        submittedAt: null
+      };
+      saveState();
+      renderApp();
+      switchTab(TABS.TODAY);
+    }
+
     function handleFinishWorkout() {
       if (!state.currentWorkout) {
         return;
       }
 
+      const todayPlan = getTodayPlan();
       const workout = state.currentWorkout;
       workout.slots.forEach((slot) => {
         if (!workout.freeChoiceMode && slot.exercise) {
@@ -2853,13 +3194,12 @@
       state.history.unshift({
         id: "history-" + Date.now(),
         type: "training",
-        day: state.currentDay,
-        title: "Training afgerond",
+        sessionType: "strength",
+        title: todayPlan.strengthDose ? todayPlan.strengthDose.title : "Strength",
         completedAt: new Date().toISOString(),
+        recoveryBand: todayPlan.band ? todayPlan.band.label : "",
+        recoveryTotal: todayPlan.total || null,
         freeChoiceMode: workout.freeChoiceMode,
-        hiitFinisher: state.settings.hiitAsDay ? null : getCurrentEmbeddedHiitOption(),
-        hiitWeight: state.settings.hiitAsDay ? "" : (state.hiit.weights[getHiitSessionKey(getCurrentHiitPlan(true))] || ""),
-        hiitSetsDone: state.settings.hiitAsDay ? 0 : (state.hiit.setsDone || 0),
         slots: workout.slots.map((slot) => ({
           label: slot.label,
           subcategory: slot.subcategory,
@@ -2868,12 +3208,7 @@
         }))
       });
 
-      if (!state.settings.hiitAsDay) {
-        advanceHiitRotation();
-      }
       state.trainingSessionsCompleted += 1;
-      state.totalDayAdvances += 1;
-      state.currentDay = nextDayValue(state.currentDay);
       state.currentWorkout = null;
       saveState();
       launchConfetti();
@@ -2882,22 +3217,19 @@
     }
 
     function handleSkipDay() {
-      const config = getDayConfig(state.currentDay);
-      if (state.currentDay === 6 && state.settings.hiitAsDay) {
-        advanceHiitRotation();
-      }
+      const todayPlan = getTodayPlan();
       state.history.unshift({
         id: "history-" + Date.now(),
         type: "skip",
-        day: state.currentDay,
-        title: config.title,
+        sessionType: todayPlan.effectiveSessionType || todayPlan.baseSessionType,
+        title: todayPlan.title || "Session skipped",
         completedAt: new Date().toISOString(),
+        recoveryBand: todayPlan.band ? todayPlan.band.label : "",
+        recoveryTotal: todayPlan.total || null,
         freeChoiceMode: false,
         slots: []
       });
 
-      state.totalDayAdvances += 1;
-      state.currentDay = nextDayValue(state.currentDay);
       state.currentWorkout = null;
       saveState();
       renderApp();
@@ -2905,17 +3237,19 @@
     }
 
     function handleFinishRecoveryDay() {
-      const config = getDayConfig(state.currentDay);
-      const hiitPlan = state.currentDay === 6 && state.settings.hiitAsDay ? getCurrentHiitPlan(false) : null;
-      if (state.currentDay === 6 && state.settings.hiitAsDay) {
+      const todayPlan = getTodayPlan();
+      const hiitPlan = todayPlan.effectiveSessionType === "hiit" ? getCurrentHiitPlan() : null;
+      if (hiitPlan) {
         advanceHiitRotation();
       }
       state.history.unshift({
         id: "history-" + Date.now(),
         type: "recovery-finish",
-        day: state.currentDay,
-        title: config.title,
+        sessionType: todayPlan.effectiveSessionType,
+        title: todayPlan.title,
         completedAt: new Date().toISOString(),
+        recoveryBand: todayPlan.band ? todayPlan.band.label : "",
+        recoveryTotal: todayPlan.total || null,
         freeChoiceMode: false,
         hiitFinisher: hiitPlan ? formatHiitPlan(hiitPlan) : null,
         hiitWeight: hiitPlan ? (state.hiit.weights[getHiitSessionKey(hiitPlan)] || "") : "",
@@ -2923,8 +3257,6 @@
         slots: []
       });
 
-      state.totalDayAdvances += 1;
-      state.currentDay = nextDayValue(state.currentDay);
       state.currentWorkout = null;
       saveState();
       launchConfetti();
@@ -2942,15 +3274,15 @@
         const pattern = PROGRAM[patternKey];
         const nextSubcategory = pattern.subcategories[state.rotations.subcategories[patternKey] % pattern.subcategories.length];
         const nextExercise = state.settings.freeChoice
-          ? "Verborgen in vrije keus"
+          ? "Hidden in free choice"
           : previewNextExercise(patternKey, nextSubcategory);
 
         return `
           <div class="mini-card">
             <h4>${escapeHtml(pattern.label)}</h4>
             <ul class="detail-list">
-              <li><strong>Volgende subcategorie:</strong> ${escapeHtml(nextSubcategory)}</li>
-              <li><strong>Volgende oefening:</strong> ${escapeHtml(nextExercise)}</li>
+              <li><strong>Next subcategory:</strong> ${escapeHtml(nextSubcategory)}</li>
+              <li><strong>Next exercise:</strong> ${escapeHtml(nextExercise)}</li>
             </ul>
           </div>
         `;
@@ -2972,7 +3304,7 @@
 
       const secondaryCard = `
         <div class="mini-card">
-          <h4>Secundair</h4>
+          <h4>Secondary</h4>
           <ul class="detail-list">
             ${PROGRAM.secondary.exercises.map((exercise) => `<li>${escapeHtml(exercise)}</li>`).join("")}
           </ul>
@@ -2985,27 +3317,27 @@
               ? item.slots.map((slot) => {
                   const line = [slot.label, slot.subcategory, slot.exercise].filter(Boolean).join(" — ");
                   return slot.value ? line + " (" + slot.value + ")" : line;
-                }).concat(item.hiitFinisher ? ["HIIT finisher - " + item.hiitFinisher] : []).join(" | ")
+                }).join(" | ")
               : item.type === "recovery-finish"
-                ? "Dag afgerond en doorgezet naar de volgende dag."
-                : "Dag overgeslagen en doorgezet naar de volgende dag.";
+                ? (item.hiitFinisher ? item.hiitFinisher : "Session completed according to recovery guidance.")
+                : "Session skipped.";
             return `
               <article class="history-item">
-                <h4>${escapeHtml(dayLabel(item.day))} · ${escapeHtml(item.title)}</h4>
-                <div class="history-meta">${escapeHtml(formatDateTime(item.completedAt))}${item.type === "training" ? " · " + (item.freeChoiceMode ? "Vrije keus" : "Automatisch") : ""}</div>
+                <h4>${escapeHtml(item.title)}</h4>
+                <div class="history-meta">${escapeHtml(formatDateTime(item.completedAt))}${item.sessionType ? " · " + escapeHtml(SESSION_LABELS[item.sessionType] || item.sessionType) : ""}${item.recoveryTotal ? " · " + escapeHtml(item.recoveryTotal + "/15") : ""}${item.type === "training" ? " · " + (item.freeChoiceMode ? "Free choice" : "Automatic") : ""}</div>
                 <div class="subtle">${escapeHtml(summary)}</div>
               </article>
             `;
           }).join("")
         : `
           <article class="history-item">
-            <h4>Nog geen historie</h4>
-            <div class="subtle">Zodra je dagen afrondt of overslaat, verschijnt hier een eenvoudig logboek.</div>
+            <h4>No history yet</h4>
+            <div class="subtle">Once you complete or skip sessions, a simple logbook will appear here.</div>
           </article>
         `;
 
       const pendingModeNote = state.currentWorkout && state.currentWorkout.freeChoiceMode !== state.settings.freeChoice
-        ? `<p class="muted-note">De huidige trainingssessie is al gegenereerd. De nieuwe stand van Vrije keus geldt volledig vanaf de volgende trainingsdag.</p>`
+        ? `<p class="muted-note">De huidige strengthsessie is al gegenereerd. De nieuwe stand van Free choice geldt volledig zodra je die sessie opnieuw opbouwt.</p>`
         : "";
 
       view.innerHTML = `
@@ -3013,51 +3345,51 @@
           <article class="card">
             <div class="card-header">
               <div>
-                <h2>Opties</h2>
-                <p class="subtle">Instellingen, oefeningsoverzicht en historie.</p>
+                <h2>Options</h2>
+                <p class="subtle">Settings, exercise overview, and history.</p>
               </div>
             </div>
             <div class="toggle-row">
               <div>
-                <h3>Vrije keus</h3>
-                <p class="subtle">Aan: alleen patroon en subcategorie tonen. Uit: automatisch een oefening kiezen per slot.</p>
+                <h3>Free choice</h3>
+                <p class="subtle">On: show only the pattern and subcategory. Off: automatically choose an exercise for each slot.</p>
                 ${pendingModeNote}
               </div>
-              <label class="switch" aria-label="Vrije keus aan of uit">
+              <label class="switch" aria-label="Free choice on or off">
                 <input type="checkbox" id="freeChoiceToggle" ${state.settings.freeChoice ? "checked" : ""}>
                 <span class="slider"></span>
               </label>
             </div>
-            <div class="toggle-row" style="margin-top: 14px;">
-              <div>
-                <h3>HIIT dag</h3>
-                <p class="subtle">Aan: dag 6 blijft een losse HIIT-dag. Uit: HIIT wordt gehalveerd en komt na trainingsdagen, na Secundair.</p>
-              </div>
-              <label class="switch" aria-label="HIIT dag aan of uit">
-                <input type="checkbox" id="hiitAsDayToggle" ${state.settings.hiitAsDay ? "checked" : ""}>
-                <span class="slider"></span>
-              </label>
+            <div class="mini-card" style="margin-top: 14px;">
+              <h3>Compass logic</h3>
+              <p class="subtle">The logbook chooses the session type. The recovery gate chooses the dose. Exercise rotation chooses the content.</p>
             </div>
-            <div class="toggle-row" style="margin-top: 14px;">
-              <div>
-                <h3>Strength</h3>
-                <p class="subtle">Aan: gebruik strength-richtlijnen met 3-6 reps en langere rust. Uit: gebruik de standaard trainingsrichtlijnen.</p>
-              </div>
-              <label class="switch" aria-label="Strength richtlijnen aan of uit">
-                <input type="checkbox" id="strengthModeToggle" ${state.settings.strengthMode ? "checked" : ""}>
-                <span class="slider"></span>
-              </label>
+            <div class="mini-card" style="margin-top: 14px;">
+              <h3>Next main rotation</h3>
+              <p class="subtle">${escapeHtml(nextOrder)}</p>
             </div>
             <div class="button-row">
-              <button class="ghost-button" type="button" id="resetButton">Reset alles</button>
+              <button class="ghost-button" type="button" id="resetButton">Reset all</button>
             </div>
           </article>
 
           <article class="card">
             <div class="card-header">
               <div>
-                <h3>Oefeningsoverzicht</h3>
-                <p class="subtle">Alle hoofdpatronen, subcategorieen en oefeningen op een plek.</p>
+                <h3>Exercise rotation</h3>
+                <p class="subtle">The structure stays the same; Compass only rotates through content and subcategories.</p>
+              </div>
+            </div>
+            <div class="library-grid">
+              ${rotationCards}
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="card-header">
+              <div>
+                <h3>Exercise overview</h3>
+                <p class="subtle">All main patterns, subcategories, and exercises in one place.</p>
               </div>
             </div>
             <div class="library-grid">
@@ -3069,8 +3401,8 @@
           <article class="card">
             <div class="card-header">
               <div>
-                <h3>Historie</h3>
-                <p class="subtle">Recente afgeronde of overgeslagen dagen.</p>
+                <h3>History</h3>
+                <p class="subtle">Recent completed or skipped sessions.</p>
               </div>
             </div>
             <div class="history-grid">
@@ -3082,20 +3414,6 @@
 
       document.getElementById("freeChoiceToggle").addEventListener("change", (event) => {
         state.settings.freeChoice = event.target.checked;
-        saveState();
-        renderApp();
-        switchTab(TABS.OPTIONS);
-      });
-
-      document.getElementById("hiitAsDayToggle").addEventListener("change", (event) => {
-        state.settings.hiitAsDay = event.target.checked;
-        saveState();
-        renderApp();
-        switchTab(TABS.OPTIONS);
-      });
-
-      document.getElementById("strengthModeToggle").addEventListener("change", (event) => {
-        state.settings.strengthMode = event.target.checked;
         saveState();
         renderApp();
         switchTab(TABS.OPTIONS);
@@ -3115,13 +3433,13 @@
           return `
             <div class="mini-card">
               <h4>${escapeHtml(subcategory)}</h4>
-              <p class="subtle">${hasOverride ? "Eigen lijst actief." : "Standaardlijst actief."} Je kunt hieronder losse oefeningen aanpassen of alles vervangen.</p>
+              <p class="subtle">${hasOverride ? "Custom list active." : "Default list active."} You can edit individual exercises below or replace everything.</p>
               <label class="input-wrap">
-                <span class="input-label">Eigen oefeningen</span>
-                <textarea data-action="custom-exercises" data-pattern="${escapeHtml(patternKey)}" data-subcategory="${escapeHtml(subcategory)}" placeholder="Typ oefeningen gescheiden door komma's of nieuwe regels">${escapeHtml(getEditorValue(patternKey, subcategory))}</textarea>
+                <span class="input-label">Custom exercises</span>
+                <textarea data-action="custom-exercises" data-pattern="${escapeHtml(patternKey)}" data-subcategory="${escapeHtml(subcategory)}" placeholder="Type exercises separated by commas or new lines">${escapeHtml(getEditorValue(patternKey, subcategory))}</textarea>
               </label>
               <div class="button-row">
-                <button class="secondary-button" type="button" data-action="reset-custom-subcategory" data-pattern="${escapeHtml(patternKey)}" data-subcategory="${escapeHtml(subcategory)}">Herstel standaard</button>
+                <button class="secondary-button" type="button" data-action="reset-custom-subcategory" data-pattern="${escapeHtml(patternKey)}" data-subcategory="${escapeHtml(subcategory)}">Restore default</button>
               </div>
             </div>
           `;
@@ -3132,7 +3450,7 @@
             <div class="card-header">
               <div>
                 <h3>${escapeHtml(pattern.label)}</h3>
-                <p class="subtle">Zodra je hier iets invult, gebruikt de generator jouw lijst in plaats van de standaardlijst.</p>
+                <p class="subtle">As soon as you add something here, the generator will use your list instead of the default list.</p>
               </div>
             </div>
             <div class="library-grid">${blocks}</div>
@@ -3144,18 +3462,18 @@
         <article class="card">
           <div class="card-header">
             <div>
-              <h3>Secundair</h3>
-              <p class="subtle">Deze lijst overschrijft de standaard secundaire rotatie.</p>
+              <h3>Secondary</h3>
+              <p class="subtle">This list overrides the default secondary rotation.</p>
             </div>
           </div>
           <div class="mini-card">
-            <p class="subtle">${hasCustomExerciseOverride("secondary", "Secundair") ? "Eigen lijst actief." : "Standaardlijst actief."} Je kunt hieronder losse oefeningen aanpassen of alles vervangen.</p>
+            <p class="subtle">${hasCustomExerciseOverride("secondary", "Secondary") ? "Custom list active." : "Default list active."} You can edit individual exercises below or replace everything.</p>
             <label class="input-wrap">
-              <span class="input-label">Eigen oefeningen</span>
-              <textarea data-action="custom-exercises" data-pattern="secondary" data-subcategory="Secundair" placeholder="Typ oefeningen gescheiden door komma's of nieuwe regels">${escapeHtml(getEditorValue("secondary", "Secundair"))}</textarea>
+              <span class="input-label">Custom exercises</span>
+              <textarea data-action="custom-exercises" data-pattern="secondary" data-subcategory="Secondary" placeholder="Type exercises separated by commas or new lines">${escapeHtml(getEditorValue("secondary", "Secondary"))}</textarea>
             </label>
             <div class="button-row">
-              <button class="secondary-button" type="button" data-action="reset-custom-subcategory" data-pattern="secondary" data-subcategory="Secundair">Herstel standaard</button>
+              <button class="secondary-button" type="button" data-action="reset-custom-subcategory" data-pattern="secondary" data-subcategory="Secondary">Restore default</button>
             </div>
           </div>
         </article>
@@ -3166,13 +3484,13 @@
           <article class="card">
             <div class="card-header">
               <div>
-                <h2>Eigen Oefeningen</h2>
-                <p class="subtle">Vul per subcategorie je eigen oefeningen in. Laat een vak leeg om de standaardlijst te blijven gebruiken. Gebruik daarna save & reset om de huidige trainingsdag meteen opnieuw op te bouwen.</p>
+                <h2>Custom Exercises</h2>
+                <p class="subtle">Enter your own exercises for each subcategory. Leave a field empty to keep using the default list. Then use save & reset to rebuild the current training day immediately.</p>
               </div>
             </div>
             <div class="button-row">
-              <button class="primary-button" type="button" id="saveResetCustomButton">Opslaan &amp; reset huidige dag</button>
-              <button class="ghost-button" type="button" id="resetAllCustomButton">Reset alle eigen oefeningen</button>
+              <button class="primary-button" type="button" id="saveResetCustomButton">Save &amp; reset current day</button>
+              <button class="ghost-button" type="button" id="resetAllCustomButton">Reset all custom exercises</button>
             </div>
           </article>
           ${cards}
@@ -3231,7 +3549,7 @@
       const resetAllButton = document.getElementById("resetAllCustomButton");
       if (resetAllButton) {
         resetAllButton.addEventListener("click", () => {
-          const confirmed = window.confirm("Weet je zeker dat je alle eigen oefeningen wilt verwijderen en terug wilt naar de standaardlijsten?");
+          const confirmed = window.confirm("Are you sure you want to remove all custom exercises and return to the default lists?");
           if (!confirmed) {
             return;
           }
@@ -3251,13 +3569,13 @@
     }
 
     function previewNextSecondaryExercise() {
-      const options = getExerciseOptions("secondary", "Secundair");
+      const options = getExerciseOptions("secondary", "Secondary");
       const currentIndex = state.rotations.subcategories.secondary || 0;
       return options[currentIndex % options.length];
     }
 
     function handleReset() {
-      const confirmed = window.confirm("Weet je zeker dat je alle voortgang, gewichten, nudges, rotaties en historie wilt resetten?");
+      const confirmed = window.confirm("Are you sure you want to reset all progress, loads, nudges, rotations, and history?");
       if (!confirmed) {
         return;
       }
@@ -3268,9 +3586,16 @@
     }
 
     function updateHero() {
-      document.getElementById("heroDayPill").textContent = dayLabel(state.currentDay) + " · " + getDayConfig(state.currentDay).title;
-      document.getElementById("heroModePill").textContent = "Vrije keus " + (state.settings.freeChoice ? "aan" : "uit");
-      document.getElementById("heroProgressPill").textContent = state.trainingSessionsCompleted + " trainingen afgerond";
+      const plan = getTodayPlan();
+      const heroLabel = plan.pendingCheckin
+        ? "Recovery start"
+        : (SESSION_LABELS[plan.effectiveSessionType] || plan.title);
+      const heroDetail = plan.pendingCheckin
+        ? (SESSION_LABELS[plan.baseSessionType] || "Session")
+        : (plan.band.label + " · " + plan.total + "/15");
+      document.getElementById("heroDayPill").textContent = heroLabel + " · " + heroDetail;
+      document.getElementById("heroModePill").textContent = "Free choice " + (state.settings.freeChoice ? "on" : "off");
+      document.getElementById("heroProgressPill").textContent = state.trainingSessionsCompleted + " sessions completed";
     }
 
     function switchTab(tabName) {
