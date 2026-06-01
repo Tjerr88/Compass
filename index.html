@@ -1839,7 +1839,30 @@
       return state.history.find((item) => item.type !== "skip" && item.sessionType === sessionType) || null;
     }
 
+    function getConsecutiveTrainingSessionCount() {
+      const sessionTypesThatCount = new Set(["strength", "zone2", "hiit"]);
+      let count = 0;
+
+      for (const item of state.history) {
+        if (item.type === "skip") {
+          break;
+        }
+
+        if (!sessionTypesThatCount.has(item.sessionType)) {
+          break;
+        }
+
+        count += 1;
+      }
+
+      return count;
+    }
+
     function getBaseSessionTypeFromHistory() {
+      if (getConsecutiveTrainingSessionCount() >= 3) {
+        return "recovery";
+      }
+
       const lastSession = getLastCompletedSession();
       if (!lastSession || lastSession.sessionType !== "strength") {
         return "strength";
@@ -3362,7 +3385,7 @@
             </div>
             <div class="mini-card" style="margin-top: 14px;">
               <h3>Compass logic</h3>
-              <p class="subtle">The logbook chooses the session type. The recovery gate chooses the dose. Exercise rotation chooses the content.</p>
+              <p class="subtle">The logbook chooses the session type. After 3 training sessions in a row, Compass forces a recovery day. The recovery gate chooses the dose. Exercise rotation chooses the content.</p>
             </div>
             <div class="mini-card" style="margin-top: 14px;">
               <h3>Next main rotation</h3>
