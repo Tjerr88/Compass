@@ -1055,9 +1055,9 @@
 
   <script>
     const STORAGE_KEY = "training-generator-v1";
-    const LS_FOCUS_BAG_KEY = "session_compass_focus_bag_v1";
-    const LS_FOCUS_DAY_KEY = "session_compass_focus_day_v1";
-    const LS_FOCUS_TODAY_KEY = "session_compass_focus_today_v1";
+    const LS_FOCUS_BAG_KEY = "session_compass_focus_bag_v2";
+    const LS_FOCUS_DAY_KEY = "session_compass_focus_day_v2";
+    const LS_FOCUS_TODAY_KEY = "session_compass_focus_today_v2";
     const APP_VERSION = 4;
     const TABS = { TODAY: "today", OPTIONS: "options", CUSTOM: "custom" };
     const RECOVERY_FIELDS = [
@@ -1090,148 +1090,56 @@
 
     const STOIC_FOCUS_LESSONS = [
       {
-        title: "Train what is yours.",
-        text: "You do not control sleep, stress, or how heavy the weight feels. You control attention, technique, breathing, rest, and when to stop."
+        title: "Live according to nature.",
+        text: "Work with reality as it is, not with the fantasy of how you wish today would feel."
       },
       {
-        title: "Do not borrow from the day.",
-        text: "A useful session leaves enough energy to be a father, partner, worker, and human after the workout."
+        title: "Fulfillment is found in action.",
+        text: "Satisfaction does not come from comfort or praise, but from doing the right thing well."
       },
       {
-        title: "The body is the first reality.",
-        text: "The plan matters, but today's body tells the truth. Adjust without drama."
+        title: "Control what is yours.",
+        text: "You do not control external events. You control judgment, choice, effort, and action."
       },
       {
-        title: "Strength is not exhaustion.",
-        text: "Training is successful when it builds capacity, not when it proves how much discomfort you can survive."
+        title: "You already have tools.",
+        text: "Reason, attention, discipline, and restraint are already available to you. Use them."
       },
       {
-        title: "Stop before character turns into ego.",
-        text: "Discipline starts the work. Ego keeps pushing after the lesson is already learned."
+        title: "Practice apatheia.",
+        text: "Do not let discomfort, frustration, or pride rule the mind. Remove excess reaction."
       },
       {
-        title: "Be strong enough to serve.",
-        text: "The point is not only muscle. The point is being able to carry, help, play, protect, and stay present."
+        title: "Accept responsibility.",
+        text: "There is order in the world and reason in you. Use your reason and answer for your choices."
       },
       {
-        title: "Choose the useful dose.",
-        text: "Too little changes nothing. Too much costs the rest of the day. Wisdom is finding the dose that builds."
+        title: "No one stands alone.",
+        text: "You are part of a larger whole. Act in ways that make you more useful within it."
       },
       {
-        title: "No drama under load.",
-        text: "Breathe, brace, move, rest. Do not turn a hard set into a story about yourself."
+        title: "Grow through service.",
+        text: "You become better by belonging to something greater than private comfort and ego."
       },
       {
-        title: "Leave one in reserve.",
-        text: "Not because you are weak, but because tomorrow, your family, and your responsibilities still count."
+        title: "Progress, not perfection.",
+        text: "Do not demand a perfect day. Ask only for an honest step in the right direction."
       },
       {
-        title: "Practice calm effort.",
-        text: "The weight may be hard. Your mind does not have to be loud."
+        title: "Wisdom chooses the measure.",
+        text: "See clearly what today allows. Good judgment chooses the right dose of work."
       },
       {
-        title: "Control the next rep.",
-        text: "The whole session is not your problem. This rep, this breath, this decision is."
+        title: "Courage begins the work.",
+        text: "Courage is not noise or force. It is the steady willingness to do what should be done."
       },
       {
-        title: "Train for the man who goes home.",
-        text: "The workout is only part of the day. Make sure the version of you after training is still useful."
+        title: "Justice keeps perspective.",
+        text: "Do not train as if only you matter. Keep your conduct fit for life with other people."
       },
       {
-        title: "Do the ordinary work well.",
-        text: "Most progress comes from repeating simple things with attention, not from chasing special sessions."
-      },
-      {
-        title: "Respect fatigue as information.",
-        text: "Fatigue is not failure. It tells you when to rest, adjust, or finish clean."
-      },
-      {
-        title: "The session is not a punishment.",
-        text: "Do not train to pay for food, stress, guilt, or frustration. Train to build capacity."
-      },
-      {
-        title: "Be firm, not reckless.",
-        text: "Courage is starting the work. Temperance is knowing when enough work has been done."
-      },
-      {
-        title: "Keep your promises small and real.",
-        text: "A completed sensible session is worth more than an ambitious plan abandoned or forced."
-      },
-      {
-        title: "Make strength usable.",
-        text: "If training makes you less patient, less present, or less capable afterwards, the dose was wrong."
-      },
-      {
-        title: "The first slow rep speaks.",
-        text: "When quality drops, listen. The goal is training, not arguing with the signal."
-      },
-      {
-        title: "Build capacity quietly.",
-        text: "Zone 2, mobility, and clean submaximal work are not filler. They are the base that lets you keep going."
-      },
-      {
-        title: "Be the same man under pressure.",
-        text: "Heavy sets and hard intervals are practice in staying composed when the body wants noise."
-      },
-      {
-        title: "Use the plan, do not obey it blindly.",
-        text: "A plan gives direction. Wisdom decides how much of it belongs to today."
-      },
-      {
-        title: "Train so life gets easier.",
-        text: "Stairs, kids, groceries, work, hikes, sleep, mood: the session should serve real life."
-      },
-      {
-        title: "Progress is returning.",
-        text: "A lighter day, missed day, or recovery day does not break the practice. Return to the next useful action."
-      },
-      {
-        title: "Earn the right to continue.",
-        text: "Clean reps, stable joints, calm breath, and energy left over are signs you can build from here."
-      },
-      {
-        title: "Do not chase the feeling.",
-        text: "A workout does not need to feel epic to be effective. Quiet work still counts."
-      },
-      {
-        title: "Train the choice.",
-        text: "Every session asks whether you can choose quality over ego, patience over haste, and consistency over drama."
-      },
-      {
-        title: "Strong today, available later.",
-        text: "Dad-fit means you can train hard enough to improve and still be available when life asks for you."
-      },
-      {
-        title: "Let the work be enough.",
-        text: "Do the sets, take the rests, finish clean. You do not need to add suffering to make it count."
-      },
-      {
-        title: "Carry strength into life.",
-        text: "The real test is not the last set. It is how you move, speak, help, and recover afterwards."
-      },
-      {
-        title: "Simple is not easy.",
-        text: "Showing up, choosing the right dose, and repeating clean work is simple. That is why it works."
-      },
-      {
-        title: "Be useful, not spent.",
-        text: "The aim is not to be destroyed by training. The aim is to become harder to destroy by life."
-      },
-      {
-        title: "Accept today, train anyway.",
-        text: "You do not need perfect energy or perfect circumstances. You need an honest adjustment and a useful action."
-      },
-      {
-        title: "The long game is the discipline.",
-        text: "One heroic session is easy to admire. Years of sensible work are harder, and more valuable."
-      },
-      {
-        title: "Strength without self-command is noise.",
-        text: "Load, speed, and effort only matter when they are governed by judgment."
-      },
-      {
-        title: "Finish as someone you respect.",
-        text: "End the session having acted with control, effort, and restraint. That is the real win."
+        title: "Temperance keeps order.",
+        text: "Stop before excess. Enough is a measure of reason, not weakness."
       }
     ];
 
@@ -2266,6 +2174,23 @@
       }
     }
 
+    function getDateKeyFromValue(value) {
+      const date = new Date(value);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      return year + "-" + month + "-" + day;
+    }
+
+    function getLastLoggedItem() {
+      return state.history[0] || null;
+    }
+
+    function isTodayClosed() {
+      const lastItem = getLastLoggedItem();
+      return !!(lastItem && getDateKeyFromValue(lastItem.completedAt) === getTodayKey());
+    }
+
     function getCurrentHiitOption() {
       return formatHiitPlan(getCurrentHiitPlan());
     }
@@ -2613,8 +2538,42 @@
       `;
     }
 
+    function renderFinishedState() {
+      const lastItem = getLastLoggedItem();
+      const summary = lastItem
+        ? (lastItem.type === "skip"
+          ? "Today's session has been skipped."
+          : "Today's session has been logged.")
+        : "Today's work is done.";
+
+      return `
+        <article class="card action-card">
+          <div class="card-header">
+            <div>
+              <h3>Finished for today</h3>
+              <p class="subtle">Compass will unlock the next session when it is a new day.</p>
+            </div>
+            <div class="slot-chip">Closed</div>
+          </div>
+          <div class="action-value">Today's work is done.</div>
+          <p class="subtle">${escapeHtml(summary)}</p>
+          ${lastItem ? `<p class="subtle">Last log: ${escapeHtml(lastItem.title)} · ${escapeHtml(formatDateTime(lastItem.completedAt))}</p>` : ""}
+        </article>
+      `;
+    }
+
     function renderToday() {
       const view = document.getElementById("todayView");
+      if (isTodayClosed()) {
+        view.innerHTML = `
+          <div class="stack">
+            ${renderFocusOfTheDay()}
+            ${renderFinishedState()}
+          </div>
+        `;
+        return;
+      }
+
       const plan = getTodayPlan();
       ensureCurrentWorkout(plan);
 
@@ -3609,6 +3568,13 @@
     }
 
     function updateHero() {
+      if (isTodayClosed()) {
+        document.getElementById("heroDayPill").textContent = "Finished · Today";
+        document.getElementById("heroModePill").textContent = "Free choice " + (state.settings.freeChoice ? "on" : "off");
+        document.getElementById("heroProgressPill").textContent = state.trainingSessionsCompleted + " sessions completed";
+        return;
+      }
+
       const plan = getTodayPlan();
       const heroLabel = plan.pendingCheckin
         ? "Recovery start"
