@@ -553,14 +553,89 @@
 
     .action-card {
       display: grid;
-      gap: 14px;
+      gap: 16px;
       text-align: left;
+      position: relative;
+      overflow: hidden;
+      background:
+        linear-gradient(180deg, rgba(254, 251, 245, 0.98), rgba(241, 233, 218, 0.96)),
+        linear-gradient(120deg, rgba(85, 98, 74, 0.06), rgba(143, 116, 76, 0.04));
+    }
+
+    .action-card::before {
+      content: "";
+      position: absolute;
+      left: 22px;
+      right: 22px;
+      top: 14px;
+      height: 8px;
+      border-top: 1px solid rgba(143, 116, 76, 0.28);
+      border-bottom: 1px solid rgba(143, 116, 76, 0.14);
+      pointer-events: none;
+    }
+
+    .action-card > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .action-kicker {
+      margin: 0 0 6px;
+      font-size: 0.76rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--accent-metal);
+    }
+
+    .action-card .card-header {
+      margin-top: 10px;
     }
 
     .action-value {
       font-size: clamp(1.5rem, 3vw, 2rem);
       font-weight: 800;
       letter-spacing: -0.03em;
+      line-height: 1.04;
+      color: #2c241a;
+    }
+
+    .action-support {
+      margin: -2px 0 0;
+      font-size: 0.96rem;
+      color: var(--muted);
+    }
+
+    .session-overview {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    }
+
+    .overview-card {
+      padding: 16px;
+      border-radius: 18px;
+      background: rgba(255, 252, 247, 0.82);
+      border: 1px solid rgba(115, 91, 58, 0.12);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.5);
+    }
+
+    .overview-label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 0.77rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      font-weight: 800;
+      color: var(--muted);
+    }
+
+    .overview-value {
+      display: block;
+      font-size: 1rem;
+      line-height: 1.35;
+      color: var(--text);
+      font-weight: 700;
     }
 
     .toggle-row {
@@ -663,6 +738,67 @@
       font-size: 1.02rem;
     }
 
+    .recovery-slider-card {
+      gap: 12px;
+      background:
+        linear-gradient(180deg, rgba(255, 252, 247, 0.98), rgba(243, 236, 225, 0.96));
+    }
+
+    .recovery-slider-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .recovery-slider-value {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--primary-strong);
+      letter-spacing: -0.03em;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--primary-strong);
+    }
+
+    .score-panel {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+
+    .score-panel .overview-value {
+      font-size: 1.2rem;
+    }
+
+    .finished-card {
+      text-align: center;
+      justify-items: center;
+      padding-top: 30px;
+      padding-bottom: 28px;
+    }
+
+    .finished-mark {
+      width: 72px;
+      height: 72px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      font-size: 2rem;
+      color: #f7f1e4;
+      background: linear-gradient(135deg, #607055, var(--primary-strong));
+      box-shadow: 0 16px 30px rgba(56, 68, 55, 0.22);
+    }
+
+    .finished-card .action-value,
+    .finished-card .action-support,
+    .finished-card .subtle {
+      text-align: center;
+      max-width: 50ch;
+    }
+
     .inline-list,
     .detail-list {
       margin: 0;
@@ -688,20 +824,37 @@
     }
 
     .history-item {
-      padding: 16px;
-      border-radius: 18px;
-      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(247,249,248,0.94));
+      padding: 18px;
+      border-radius: 22px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(244, 246, 244, 0.94));
       border: 1px solid var(--line);
+      box-shadow: 0 10px 20px rgba(67, 52, 31, 0.04);
     }
 
     .history-item h4 {
-      margin-bottom: 8px;
+      margin-bottom: 10px;
     }
 
     .history-meta {
       color: var(--muted);
       font-size: 0.92rem;
-      margin-bottom: 10px;
+      margin-bottom: 12px;
+      line-height: 1.45;
+    }
+
+    .history-summary {
+      color: var(--text);
+      line-height: 1.55;
+    }
+
+    .history-item .day-badges {
+      margin-bottom: 12px;
+      gap: 8px;
+    }
+
+    .history-item .badge {
+      padding: 7px 10px;
+      font-size: 0.82rem;
     }
 
     .muted-note {
@@ -1216,10 +1369,10 @@
     };
 
     const HIIT_PLANS = [
-      { name: "Slee push", fullSets: 10, halfSets: 5, workSec: 20, restSec: 75, restLabel: "60-90 sec wandelen" },
-      { name: "Kettlebell swings", fullSets: 10, halfSets: 5, workSec: 20, restSec: 60, restLabel: "45-60 sec rust" },
-      { name: "Airbike of fiets", fullSets: 8, halfSets: 4, workSec: 20, restSec: 100, restLabel: "100 sec rustig" },
-      { name: "Sprint", fullSets: 8, halfSets: 4, workSec: 12, restSec: 105, restLabel: "90-120 sec wandelen" }
+      { name: "Sled push", fullSets: 10, halfSets: 5, workSec: 20, restSec: 75, restLabel: "60-90 sec walk" },
+      { name: "Kettlebell swings", fullSets: 10, halfSets: 5, workSec: 20, restSec: 60, restLabel: "45-60 sec rest" },
+      { name: "Airbike or bike", fullSets: 8, halfSets: 4, workSec: 20, restSec: 100, restLabel: "100 sec easy" },
+      { name: "Sprint", fullSets: 8, halfSets: 4, workSec: 12, restSec: 105, restLabel: "90-120 sec walk" }
     ];
 
     const WARMUP_CONTENT = [
@@ -1793,7 +1946,7 @@
       if (bandKey === "low") {
         return {
           title: "Minimum Strength",
-          summary: "Main A + Main B. 3 sets van 6-12 met RIR 4.",
+          summary: "Today includes only Main A and Main B, with 3 sets of 6-12 at RIR 4.",
           guidance: [
             "Main A and Main B.",
             "3 sets of 6-12 per main lift.",
@@ -1805,9 +1958,9 @@
       if (bandKey === "medium") {
         return {
           title: "Essential Strength",
-          summary: "Core prep + Main A + Main B.",
+          summary: "Today includes Main A and Main B, with core work at the end.",
           guidance: [
-            "Core as an extended warm-up: 2 sets of 10-12.",
+            "Core at the end: 2 sets of 10-12.",
             "Main lifts: 3-6 sets of 6-12.",
             "Max effort within quality.",
             "No secondary."
@@ -1816,10 +1969,10 @@
       }
       return {
         title: "Full Strength",
-        summary: "Core + Main A + Main B + Secondary.",
+        summary: "Today includes Main A and Main B, with core and secondary work at the end.",
         guidance: [
           "Main lifts: 3-6 sets of 6-12.",
-          "Core and secondary can both be fully included.",
+          "Core and secondary both come at the end.",
           "Max effort within quality.",
           "Build day: take volume if quality stays high."
         ]
@@ -2478,11 +2631,13 @@
 
     function renderRecoveryGate(plan) {
       const draft = getTodayRecoveryCheckin() || createDefaultRecoveryCheckin();
+      const draftTotal = getRecoveryTotal(draft);
+      const draftBand = getRecoveryBand(draftTotal);
       const sliderRows = RECOVERY_FIELDS.map((field) => `
-        <label class="mini-card" style="display:grid; gap:10px;">
-          <div style="display:flex; justify-content:space-between; gap:12px; align-items:center;">
+        <label class="mini-card recovery-slider-card" style="display:grid;">
+          <div class="recovery-slider-head">
             <strong>${escapeHtml(field.label)}</strong>
-            <span id="recoveryValue-${escapeHtml(field.key)}">${escapeHtml(draft[field.key] || 3)}</span>
+            <span class="recovery-slider-value" id="recoveryValue-${escapeHtml(field.key)}">${escapeHtml(draft[field.key] || 3)}</span>
           </div>
           <input
             type="range"
@@ -2501,21 +2656,31 @@
         <article class="card action-card">
           <div class="card-header">
             <div>
+              <p class="action-kicker">Start here</p>
               <h3>Recovery screen</h3>
               <p class="subtle">Score recovery first, then Compass shows your session.</p>
             </div>
-            <div class="slot-chip">1-5 per domein</div>
+            <div class="slot-chip">Score 1-5</div>
           </div>
           <div class="stats-grid">
             ${sliderRows}
           </div>
-          <div class="mini-card" style="margin-top:16px;">
-            <div class="slot-kicker">Verwachte richting</div>
-            <strong>${escapeHtml(nextLabel)}</strong>
-            <p class="subtle">Usage sets the direction. Recovery sets the dose.</p>
+          <div class="score-panel">
+            <div class="overview-card">
+              <span class="overview-label">Recovery total</span>
+              <span class="overview-value" id="recoveryTotalValue">${escapeHtml(draftTotal)}/15</span>
+            </div>
+            <div class="overview-card">
+              <span class="overview-label">Band</span>
+              <span class="overview-value" id="recoveryBandValue">${escapeHtml(draftBand.label)}</span>
+            </div>
+            <div class="overview-card">
+              <span class="overview-label">Expected direction</span>
+              <span class="overview-value">${escapeHtml(nextLabel)}</span>
+            </div>
           </div>
           <div class="button-row" style="margin-top:16px;">
-            <button class="primary-button" type="button" id="startSessionButton">Toon sessie</button>
+            <button class="primary-button" type="button" id="startSessionButton">Show today's session</button>
           </div>
         </article>
       `;
@@ -2532,6 +2697,7 @@
             <button class="ghost-button" type="button" id="editRecoveryButton">Edit score</button>
           </div>
           <div class="day-badges">
+            <div class="badge">Direction: ${escapeHtml(SESSION_LABELS[plan.effectiveSessionType] || plan.title)}</div>
             ${RECOVERY_FIELDS.map((field) => `<div class="badge">${escapeHtml(field.label)}: ${escapeHtml(plan.checkin[field.key])}</div>`).join("")}
           </div>
         </article>
@@ -2547,16 +2713,18 @@
         : "Today's work is done.";
 
       return `
-        <article class="card action-card">
+        <article class="card action-card finished-card">
+          <div class="finished-mark">OK</div>
           <div class="card-header">
             <div>
+              <p class="action-kicker">Closed for today</p>
               <h3>Finished for today</h3>
               <p class="subtle">Compass will unlock the next session when it is a new day.</p>
             </div>
             <div class="slot-chip">Closed</div>
           </div>
           <div class="action-value">Today's work is done.</div>
-          <p class="subtle">${escapeHtml(summary)}</p>
+          <p class="action-support">${escapeHtml(summary)}</p>
           ${lastItem ? `<p class="subtle">Last log: ${escapeHtml(lastItem.title)} · ${escapeHtml(formatDateTime(lastItem.completedAt))}</p>` : ""}
         </article>
       `;
@@ -2590,7 +2758,7 @@
 
       if (plan.effectiveSessionType !== "strength") {
         const actionValue = plan.effectiveSessionType === "zone2"
-          ? plan.zone2Minutes + " minuten"
+          ? plan.zone2Minutes + " minutes"
           : plan.effectiveSessionType === "hiit"
             ? getCurrentHiitOption()
             : plan.title;
@@ -2603,12 +2771,27 @@
             <article class="card action-card">
               <div class="card-header">
                 <div>
+                  <p class="action-kicker">Today's session</p>
                   <h3>${escapeHtml(plan.title)}</h3>
                   <p class="subtle">${escapeHtml(plan.subtitle)}</p>
                 </div>
                 <div class="slot-chip">${escapeHtml(SESSION_LABELS[plan.effectiveSessionType])}</div>
               </div>
               <div class="action-value">${escapeHtml(actionValue)}</div>
+              <div class="session-overview">
+                <div class="overview-card">
+                  <span class="overview-label">Direction</span>
+                  <span class="overview-value">${escapeHtml(SESSION_LABELS[plan.effectiveSessionType])}</span>
+                </div>
+                <div class="overview-card">
+                  <span class="overview-label">Dose</span>
+                  <span class="overview-value">${escapeHtml(plan.subtitle)}</span>
+                </div>
+                <div class="overview-card">
+                  <span class="overview-label">Reason</span>
+                  <span class="overview-value">${escapeHtml(plan.summary)}</span>
+                </div>
+              </div>
               ${hiitHtml}
               ${renderRecoveryGuidance(plan)}
               <div class="button-row">
@@ -2646,10 +2829,25 @@
           <article class="card">
             <div class="card-header">
               <div>
+                <p class="action-kicker">Today's session</p>
                 <h3>${escapeHtml(plan.strengthDose.title)}</h3>
                 <p class="subtle">${escapeHtml(plan.strengthDose.summary)}</p>
               </div>
               <div class="slot-chip">Session ${state.trainingSessionsCompleted + 1}</div>
+            </div>
+            <div class="session-overview" style="margin-bottom: 16px;">
+              <div class="overview-card">
+                <span class="overview-label">Direction</span>
+                <span class="overview-value">Strength</span>
+              </div>
+              <div class="overview-card">
+                <span class="overview-label">Dose</span>
+                <span class="overview-value">${escapeHtml(plan.strengthDose.title)}</span>
+              </div>
+              <div class="overview-card">
+                <span class="overview-label">Reason</span>
+                <span class="overview-value">${escapeHtml(plan.summary)}</span>
+              </div>
             </div>
             ${groupsHtml}
             ${modeNote}
@@ -2683,15 +2881,15 @@
       }
 
       const groups = [
-        { id: "groupA", title: "Main A", subtitle: "Eerste superset", slots: mainSlots.slice(0, 2) },
-        { id: "groupB", title: "Main B", subtitle: "Tweede superset", slots: mainSlots.slice(2, 4) }
+        { id: "groupA", title: "Main A", subtitle: "First superset", slots: mainSlots.slice(0, 2) },
+        { id: "groupB", title: "Main B", subtitle: "Second superset", slots: mainSlots.slice(2, 4) }
       ];
 
       if (supportSlots.length) {
         groups.push({
           id: "groupC",
-          title: showSecondary ? "Support" : "Core prep",
-          subtitle: showSecondary ? "Core en secundair" : "Core als verlengde warming-up",
+          title: showSecondary ? "Support" : "Core",
+          subtitle: showSecondary ? "Core and secondary at the end" : "Core at the end",
           slots: supportSlots
         });
       }
@@ -2734,7 +2932,7 @@
           <div class="timer-options">
             ${GROUP_REST_OPTIONS.map((seconds) => `
               <button class="primary-button" type="button" data-action="group-timer-start" data-timer-key="${escapeHtml(timerKey)}" data-duration="${seconds}">
-                ${timer.running && timer.lastDurationSec === seconds ? "Herstart" : "Start"} ${formatSeconds(seconds)}
+                ${timer.running && timer.lastDurationSec === seconds ? "Restart" : "Start"} ${formatSeconds(seconds)}
               </button>
             `).join("")}
             <button class="secondary-button" type="button" data-action="group-timer-stop" data-timer-key="${escapeHtml(timerKey)}">Stop</button>
@@ -2798,7 +2996,7 @@
       return `
         <article class="card soft">
           <details class="accordion">
-            <summary>Trainingsrichtlijnen</summary>
+            <summary>Training guidance</summary>
             <div class="accordion-body">
               <ul class="detail-list">
                 ${guidanceItems.map((item) => `<li>${item}</li>`).join("")}
@@ -2813,7 +3011,7 @@
       return `
         <article class="card soft">
           <details class="accordion">
-            <summary>Warming-up</summary>
+            <summary>Warm-up</summary>
             <div class="accordion-body">
               ${WARMUP_CONTENT.map((section) => `
                 <div class="mini-card" style="margin-top: 12px;">
@@ -2989,7 +3187,7 @@
               <h3>Rest timers</h3>
               <p class="subtle">${statusText}</p>
             </div>
-            <div class="slot-chip">${longTimer.running || shortTimer.running ? "Actief" : "Done"}</div>
+            <div class="slot-chip">${longTimer.running || shortTimer.running ? "Active" : "Done"}</div>
           </div>
           <div class="stats-grid">
             <div class="mini-card">
@@ -3070,6 +3268,16 @@
           const label = document.getElementById("recoveryValue-" + key);
           if (label) {
             label.textContent = value;
+          }
+          const total = getRecoveryTotal(draft);
+          const band = getRecoveryBand(total);
+          const totalLabel = document.getElementById("recoveryTotalValue");
+          const bandLabel = document.getElementById("recoveryBandValue");
+          if (totalLabel) {
+            totalLabel.textContent = total + "/15";
+          }
+          if (bandLabel) {
+            bandLabel.textContent = band.label;
           }
           saveState();
         });
@@ -3306,8 +3514,13 @@
             return `
               <article class="history-item">
                 <h4>${escapeHtml(item.title)}</h4>
+                <div class="day-badges">
+                  ${item.sessionType ? `<div class="badge">${escapeHtml(SESSION_LABELS[item.sessionType] || item.sessionType)}</div>` : ""}
+                  ${item.recoveryTotal ? `<div class="badge">${escapeHtml(item.recoveryTotal + "/15")}</div>` : ""}
+                  ${item.type === "training" ? `<div class="badge">${item.freeChoiceMode ? "Free choice" : "Automatic"}</div>` : ""}
+                </div>
                 <div class="history-meta">${escapeHtml(formatDateTime(item.completedAt))}${item.sessionType ? " · " + escapeHtml(SESSION_LABELS[item.sessionType] || item.sessionType) : ""}${item.recoveryTotal ? " · " + escapeHtml(item.recoveryTotal + "/15") : ""}${item.type === "training" ? " · " + (item.freeChoiceMode ? "Free choice" : "Automatic") : ""}</div>
-                <div class="subtle">${escapeHtml(summary)}</div>
+                <div class="history-summary">${escapeHtml(summary)}</div>
               </article>
             `;
           }).join("")
@@ -3319,7 +3532,7 @@
         `;
 
       const pendingModeNote = state.currentWorkout && state.currentWorkout.freeChoiceMode !== state.settings.freeChoice
-        ? `<p class="muted-note">De huidige strengthsessie is al gegenereerd. De nieuwe stand van Free choice geldt volledig zodra je die sessie opnieuw opbouwt.</p>`
+        ? `<p class="muted-note">The current strength session has already been generated. The new Free choice setting will fully apply once you rebuild that session.</p>`
         : "";
 
       view.innerHTML = `
