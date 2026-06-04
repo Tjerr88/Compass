@@ -2254,11 +2254,10 @@
 
     function ensureCurrentWorkout(plan) {
       if (!plan || plan.effectiveSessionType !== "strength") {
-        state.currentWorkout = null;
         return;
       }
 
-      if (state.currentWorkout && state.currentWorkout.planDate === plan.dateKey) {
+      if (state.currentWorkout) {
         return;
       }
 
@@ -2816,6 +2815,9 @@
       const guidanceHtml = renderGuidanceAccordion(plan);
       const warmupHtml = renderWarmupAccordion();
       const cooldownHtml = renderCooldownAccordion();
+      const carryOverNote = workout.planDate && workout.planDate !== getTodayKey()
+        ? `<p class="muted-note">You are continuing an open strength session from ${escapeHtml(workout.planDate)}. The exercise order stays the same until you complete or skip it.</p>`
+        : "";
       const modeNote = workout.freeChoiceMode
         ? `<p class="muted-note">Free choice is on for this session: each slot shows only the pattern and subcategory, without load fields or nudge buttons.</p>`
         : "";
@@ -2850,6 +2852,7 @@
               </div>
             </div>
             ${groupsHtml}
+            ${carryOverNote}
             ${modeNote}
             ${cooldownHtml}
             <div class="button-row">
