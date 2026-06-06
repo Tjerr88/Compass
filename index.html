@@ -1240,6 +1240,56 @@
     ];
 
     const GROUP_REST_OPTIONS = [60, 75, 90];
+    const TRAINING_STYLE_OPTIONS = {
+      strength: {
+        key: "strength",
+        label: "Strength",
+        summary: "Default strength guideline.",
+        mainGuidance: [
+          "Main lifts: 3-6 sets of 6-12.",
+          "Max effort within quality.",
+          "Use the nudge buttons based on load, technique, and reps."
+        ],
+        mainPrescription: "3-6 sets van 6-12 reps"
+      },
+      hypertrophy: {
+        key: "hypertrophy",
+        label: "Hypertrophy",
+        summary: "More volume-focused strength work.",
+        mainGuidance: [
+          "Main lifts: 3-6 sets of 6-12.",
+          "Stay close to failure with clean reps.",
+          "Nudge up when the top of the range is clearly there; nudge down when quality drops."
+        ],
+        mainPrescription: "3-6 sets van 6-12 reps"
+      },
+      med: {
+        key: "med",
+        label: "MED",
+        summary: "Minimal Effective Dose: just enough hard work to move forward.",
+        mainGuidance: [
+          "Main lifts: 2-3 sets van 8-12.",
+          "RIR 0-2: hard, maar technisch strak."
+        ],
+        mainPrescription: "2-3 sets van 8-12 met 0-2 RIR",
+        corePrescription: "1-2 sets van 10-15 met 0-2 RIR",
+        secondaryPrescription: "1-2 sets van 10-15 met 0-2 RIR",
+        coreGuidance: "Buik: 1-2 sets van 10-15 met 0-2 RIR.",
+        supportGuidance: "Buik en secundair: 1-2 sets van 10-15 met 0-2 RIR."
+      },
+      delorme: {
+        key: "delorme",
+        label: "Delorme",
+        summary: "Progressive loading: 50%, 75%, then one hard effort set.",
+        mainGuidance: [
+          "Set 1: 10 reps op 50%.",
+          "Set 2: 10 reps op 75%.",
+          "Set 3: 8-12 reps op 100% effort.",
+          "Haal je minder dan 8, nudge omlaag. Haal je meer dan 12, nudge omhoog."
+        ],
+        mainPrescription: "10 @ 50%, 10 @ 75%, laatste set 8-12 @ 100% effort"
+      }
+    };
 
     const STOIC_FOCUS_LESSONS = [
       {
@@ -1493,7 +1543,8 @@
         appVersion: APP_VERSION,
         trainingSessionsCompleted: 0,
         settings: {
-          freeChoice: false
+          freeChoice: false,
+          trainingStyle: "strength"
         },
         recoveryCheckins: {},
         rotations: {
@@ -1826,12 +1877,19 @@
       return focus;
     }
 
+    function getTrainingStyle() {
+      return TRAINING_STYLE_OPTIONS[state.settings.trainingStyle] || TRAINING_STYLE_OPTIONS.strength;
+    }
+
     function getSlotPrescription(slot) {
+      if (slot.slotType === "main") {
+        return getTrainingStyle().mainPrescription;
+      }
       if (slot.patternKey === "core") {
-        return "2-3 sets van 10 reps";
+        return getTrainingStyle().corePrescription || "2-3 sets van 10 reps";
       }
       if (slot.patternKey === "secondary") {
-        return "2-3 sets van 12 reps";
+        return getTrainingStyle().secondaryPrescription || "2-3 sets van 12 reps";
       }
       return "";
     }
@@ -1943,13 +2001,14 @@
     }
 
     function getStrengthDose(bandKey) {
+      const trainingStyle = getTrainingStyle();
       if (bandKey === "low") {
         return {
           title: "Minimum Strength",
           summary: "Today includes only Main A and Main B, with 3 sets of 6-12 at RIR 4.",
           guidance: [
             "Main A and Main B.",
-            "3 sets of 6-12 per main lift.",
+            ...trainingStyle.mainGuidance,
             "RIR 4. Ruim stoppen voor traagheid of techniekverlies.",
             "No core and no secondary."
           ]
@@ -1960,9 +2019,8 @@
           title: "Essential Strength",
           summary: "Today includes Main A and Main B, with core work at the end.",
           guidance: [
-            "Core at the end: 2 sets of 10-12.",
-            "Main lifts: 3-6 sets of 6-12.",
-            "Max effort within quality.",
+            (trainingStyle.coreGuidance || "Core at the end: 2 sets of 10-12."),
+            ...trainingStyle.mainGuidance,
             "No secondary."
           ]
         };
@@ -1971,9 +2029,8 @@
         title: "Full Strength",
         summary: "Today includes Main A and Main B, with core and secondary work at the end.",
         guidance: [
-          "Main lifts: 3-6 sets of 6-12.",
-          "Core and secondary both come at the end.",
-          "Max effort within quality.",
+          ...trainingStyle.mainGuidance,
+          (trainingStyle.supportGuidance || "Core and secondary both come at the end."),
           "Build day: take volume if quality stays high."
         ]
       };
@@ -2179,10 +2236,10 @@
         return "";
       }
       if (pendingNudge === "up") {
-        return "Last time: " + lastValue + " — probeer iets zwaarder";
+        return "Last time: " + lastValue + " -- probeer iets zwaarder";
       }
       if (pendingNudge === "down") {
-        return "Last time: " + lastValue + " — probeer iets lichter";
+        return "Last time: " + lastValue + " -- probeer iets lichter";
       }
       return "Last time: " + lastValue;
     }
@@ -2691,7 +2748,7 @@
           <div class="card-header">
             <div>
               <h3>Recovery score</h3>
-              <p class="subtle">${escapeHtml(plan.band.label)} · ${plan.total}/15</p>
+              <p class="subtle">${escapeHtml(plan.band.label)} - ${plan.total}/15</p>
             </div>
             <button class="ghost-button" type="button" id="editRecoveryButton">Edit score</button>
           </div>
@@ -2724,7 +2781,7 @@
           </div>
           <div class="action-value">Today's work is done.</div>
           <p class="action-support">${escapeHtml(summary)}</p>
-          ${lastItem ? `<p class="subtle">Last log: ${escapeHtml(lastItem.title)} · ${escapeHtml(formatDateTime(lastItem.completedAt))}</p>` : ""}
+          ${lastItem ? `<p class="subtle">Last log: ${escapeHtml(lastItem.title)} - ${escapeHtml(formatDateTime(lastItem.completedAt))}</p>` : ""}
         </article>
       `;
     }
@@ -2840,7 +2897,7 @@
             <div class="session-overview" style="margin-bottom: 16px;">
               <div class="overview-card">
                 <span class="overview-label">Direction</span>
-                <span class="overview-value">Strength</span>
+                <span class="overview-value">${escapeHtml(getTrainingStyle().label)}</span>
               </div>
               <div class="overview-card">
                 <span class="overview-label">Dose</span>
@@ -3461,7 +3518,7 @@
       const view = document.getElementById("optionsView");
       const nextOrder = MAIN_ORDERS[state.rotations.mainOrderIndex % MAIN_ORDERS.length]
         .map((patternKey) => PROGRAM[patternKey].label)
-        .join(" → ");
+        .join(" -> ");
 
       const rotationCards = ["core", "squat", "push", "pull", "hinge"].map((patternKey) => {
         const pattern = PROGRAM[patternKey];
@@ -3508,7 +3565,7 @@
         ? state.history.slice(0, 12).map((item) => {
             const summary = item.type === "training"
               ? item.slots.map((slot) => {
-                  const line = [slot.label, slot.subcategory, slot.exercise].filter(Boolean).join(" — ");
+                  const line = [slot.label, slot.subcategory, slot.exercise].filter(Boolean).join(" -- ");
                   return slot.value ? line + " (" + slot.value + ")" : line;
                 }).join(" | ")
               : item.type === "recovery-finish"
@@ -3522,7 +3579,7 @@
                   ${item.recoveryTotal ? `<div class="badge">${escapeHtml(item.recoveryTotal + "/15")}</div>` : ""}
                   ${item.type === "training" ? `<div class="badge">${item.freeChoiceMode ? "Free choice" : "Automatic"}</div>` : ""}
                 </div>
-                <div class="history-meta">${escapeHtml(formatDateTime(item.completedAt))}${item.sessionType ? " · " + escapeHtml(SESSION_LABELS[item.sessionType] || item.sessionType) : ""}${item.recoveryTotal ? " · " + escapeHtml(item.recoveryTotal + "/15") : ""}${item.type === "training" ? " · " + (item.freeChoiceMode ? "Free choice" : "Automatic") : ""}</div>
+                <div class="history-meta">${escapeHtml(formatDateTime(item.completedAt))}${item.sessionType ? " - " + escapeHtml(SESSION_LABELS[item.sessionType] || item.sessionType) : ""}${item.recoveryTotal ? " - " + escapeHtml(item.recoveryTotal + "/15") : ""}${item.type === "training" ? " - " + (item.freeChoiceMode ? "Free choice" : "Automatic") : ""}</div>
                 <div class="history-summary">${escapeHtml(summary)}</div>
               </article>
             `;
@@ -3537,6 +3594,17 @@
       const pendingModeNote = state.currentWorkout && state.currentWorkout.freeChoiceMode !== state.settings.freeChoice
         ? `<p class="muted-note">The current strength session has already been generated. The new Free choice setting will fully apply once you rebuild that session.</p>`
         : "";
+      const trainingStyleCards = Object.values(TRAINING_STYLE_OPTIONS).map((option) => `
+        <label class="mini-card">
+          <div style="display: flex; align-items: flex-start; gap: 10px;">
+            <input type="radio" name="trainingStyle" value="${escapeHtml(option.key)}" ${state.settings.trainingStyle === option.key ? "checked" : ""}>
+            <div>
+              <h4>${escapeHtml(option.label)}</h4>
+              <p class="subtle">${escapeHtml(option.summary)}</p>
+            </div>
+          </div>
+        </label>
+      `).join("");
 
       view.innerHTML = `
         <div class="stack">
@@ -3557,6 +3625,13 @@
                 <input type="checkbox" id="freeChoiceToggle" ${state.settings.freeChoice ? "checked" : ""}>
                 <span class="slider"></span>
               </label>
+            </div>
+            <div class="mini-card" style="margin-top: 14px;">
+              <h3>Training style</h3>
+              <p class="subtle">Choose the guideline shown during strength sessions.</p>
+              <div class="library-grid" style="margin-top: 12px;">
+                ${trainingStyleCards}
+              </div>
             </div>
             <div class="mini-card" style="margin-top: 14px;">
               <h3>Compass logic</h3>
@@ -3615,6 +3690,15 @@
         saveState();
         renderApp();
         switchTab(TABS.OPTIONS);
+      });
+
+      document.querySelectorAll('input[name="trainingStyle"]').forEach((input) => {
+        input.addEventListener("change", (event) => {
+          state.settings.trainingStyle = event.target.value;
+          saveState();
+          renderApp();
+          switchTab(TABS.OPTIONS);
+        });
       });
 
       document.getElementById("resetButton").addEventListener("click", handleReset);
@@ -3785,7 +3869,7 @@
 
     function updateHero() {
       if (isTodayClosed()) {
-        document.getElementById("heroDayPill").textContent = "Finished · Today";
+        document.getElementById("heroDayPill").textContent = "Finished - Today";
         document.getElementById("heroModePill").textContent = "Free choice " + (state.settings.freeChoice ? "on" : "off");
         document.getElementById("heroProgressPill").textContent = state.trainingSessionsCompleted + " sessions completed";
         return;
@@ -3797,8 +3881,8 @@
         : (SESSION_LABELS[plan.effectiveSessionType] || plan.title);
       const heroDetail = plan.pendingCheckin
         ? (SESSION_LABELS[plan.baseSessionType] || "Session")
-        : (plan.band.label + " · " + plan.total + "/15");
-      document.getElementById("heroDayPill").textContent = heroLabel + " · " + heroDetail;
+        : (plan.band.label + " - " + plan.total + "/15");
+      document.getElementById("heroDayPill").textContent = heroLabel + " - " + heroDetail;
       document.getElementById("heroModePill").textContent = "Free choice " + (state.settings.freeChoice ? "on" : "off");
       document.getElementById("heroProgressPill").textContent = state.trainingSessionsCompleted + " sessions completed";
     }
@@ -3868,3 +3952,8 @@
   </script>
 </body>
 </html>
+
+
+
+
+
