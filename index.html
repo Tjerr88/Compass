@@ -414,6 +414,28 @@
       margin-top: 14px;
     }
 
+    .set-tracker {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 12px;
+      align-items: center;
+      margin-top: 14px;
+    }
+
+    .set-stepper {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .stepper-button {
+      min-width: 52px;
+      min-height: 44px;
+      padding: 0 16px;
+      border-radius: 14px;
+      font-weight: 800;
+    }
+
     .input-wrap {
       display: grid;
       gap: 8px;
@@ -1030,6 +1052,14 @@
         gap: 10px;
       }
 
+      .set-tracker {
+        grid-template-columns: 1fr;
+      }
+
+      .set-stepper {
+        justify-content: stretch;
+      }
+
       .stack {
         gap: 12px;
       }
@@ -1157,6 +1187,10 @@
         width: 42px;
         height: 42px;
         border-radius: 12px;
+      }
+
+      .stepper-button {
+        flex: 1;
       }
     }
 
@@ -2260,7 +2294,8 @@
         exercise,
         previousText,
         inputValue,
-        nudgeChoice: null
+        nudgeChoice: null,
+        setsDone: 0
       };
       record.pendingNudge = null;
       return slot;
@@ -2278,7 +2313,8 @@
         exercise: null,
         previousText: "",
         inputValue: "",
-        nudgeChoice: null
+        nudgeChoice: null,
+        setsDone: 0
       };
     }
 
@@ -2297,7 +2333,8 @@
         exercise,
         previousText: buildPreviousText(record.lastValue, record.pendingNudge),
         inputValue: record.lastValue || "",
-        nudgeChoice: null
+        nudgeChoice: null,
+        setsDone: 0
       };
       record.pendingNudge = null;
       return slot;
@@ -2359,6 +2396,13 @@
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
+    }
+
+    function getStrengthSetsDone() {
+      if (!state.currentWorkout || !Array.isArray(state.currentWorkout.slots)) {
+        return 0;
+      }
+      return state.currentWorkout.slots.reduce((total, slot) => total + (Number(slot.setsDone) || 0), 0);
     }
 
     function renderFocusOfTheDay() {
@@ -2876,7 +2920,7 @@
         ? `<p class="muted-note">You are continuing an open strength session from ${escapeHtml(workout.planDate)}. The exercise order stays the same until you complete or skip it.</p>`
         : "";
       const modeNote = workout.freeChoiceMode
-        ? `<p class="muted-note">Free choice is on for this session: each slot shows only the pattern and subcategory, without load fields or nudge buttons.</p>`
+        ? `<p class="muted-note">Free choice is on for this session: each slot shows only the pattern and subcategory, without load fields or nudge buttons. The set tracker stays available so you can still count today's work.</p>`
         : "";
 
       view.innerHTML = `
@@ -2906,6 +2950,10 @@
               <div class="overview-card">
                 <span class="overview-label">Reason</span>
                 <span class="overview-value">${escapeHtml(plan.summary)}</span>
+              </div>
+              <div class="overview-card">
+                <span class="overview-label">Sets done</span>
+                <span class="overview-value">${escapeHtml(String(getStrengthSetsDone()))} total</span>
               </div>
             </div>
             ${groupsHtml}
@@ -3012,6 +3060,7 @@
       const prescriptionMarkup = prescription
         ? `<div class="nudge-line">${escapeHtml(prescription)}</div>`
         : "";
+      const setCount = Number(slot.setsDone) || 0;
       const controlsMarkup = freeChoiceMode
         ? ""
         : `
@@ -3032,6 +3081,15 @@
             </div>
           </div>
         `;
+      const setTrackerMarkup = `
+        <div class="set-tracker">
+          <div class="set-counter">Sets ${setCount}</div>
+          <div class="set-stepper">
+            <button class="secondary-button stepper-button" type="button" data-action="set-adjust" data-slot-id="${escapeHtml(slot.id)}" data-delta="-1" ${setCount <= 0 ? "disabled" : ""}>-1</button>
+            <button class="primary-button stepper-button" type="button" data-action="set-adjust" data-slot-id="${escapeHtml(slot.id)}" data-delta="1">+ Set</button>
+          </div>
+        </div>
+      `;
 
       return `
         <article class="slot-card">
@@ -3045,6 +3103,7 @@
             <div class="slot-chip">${escapeHtml(slot.slotType === "main" ? "Main" : slot.label)}</div>
           </div>
           ${nudgeMarkup}
+          ${setTrackerMarkup}
           ${controlsMarkup}
         </article>
       `;
@@ -3303,6 +3362,20 @@
             return;
           }
           slot.nudgeChoice = slot.nudgeChoice === direction ? null : direction;
+          saveState();
+          renderToday();
+        });
+      });
+
+      document.querySelectorAll('[data-action="set-adjust"]').forEach((button) => {
+        button.addEventListener("click", () => {
+          const slotId = button.getAttribute("data-slot-id");
+          const delta = Number(button.getAttribute("data-delta"));
+          const slot = findWorkoutSlot(slotId);
+          if (!slot) {
+            return;
+          }
+          slot.setsDone = Math.max(0, (Number(slot.setsDone) || 0) + delta);
           saveState();
           renderToday();
         });
@@ -3952,8 +4025,3 @@
   </script>
 </body>
 </html>
-
-
-
-
-
