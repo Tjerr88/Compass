@@ -1311,6 +1311,21 @@
         coreGuidance: "Buik: 1-2 sets van 10-15 met 0-2 RIR.",
         supportGuidance: "Buik en secundair: 1-2 sets van 10-15 met 0-2 RIR."
       },
+      machines: {
+        key: "machines",
+        label: "Machines",
+        summary: "Machine-based MED with fixed exercise choices.",
+        mainGuidance: [
+          "Compound oefeningen: 2-3 sets van 8-12.",
+          "Secundaire oefeningen: 2 sets van 10-15.",
+          "RIR 0-2: hard, maar technisch strak."
+        ],
+        mainPrescription: "2-3 sets van 8-12 met 0-2 RIR",
+        corePrescription: "2 sets van 10-15 met 0-2 RIR",
+        secondaryPrescription: "2 sets van 10-15 met 0-2 RIR",
+        coreGuidance: "Buik: 2 sets van 10-15 met 0-2 RIR.",
+        supportGuidance: "Buik en secundair: 2 sets van 10-15 met 0-2 RIR."
+      },
       delorme: {
         key: "delorme",
         label: "Delorme",
@@ -1458,6 +1473,40 @@
       { name: "Airbike or bike", fullSets: 8, halfSets: 4, workSec: 20, restSec: 100, restLabel: "100 sec easy" },
       { name: "Sprint", fullSets: 8, halfSets: 4, workSec: 12, restSec: 105, restLabel: "90-120 sec walk" }
     ];
+
+    const MACHINES_EXERCISES = {
+      core: {
+        "Anti-extensie": ["Abdominal", "Rotary Torso"],
+        "Anti-lateral bending": ["Abdominal", "Rotary Torso"],
+        "Anti-rotatie": ["Rotary Torso", "Abdominal"],
+        "Hip Flexion Stable Spine": ["Abdominal", "Rotary Torso"],
+        "Rotatie": ["Rotary Torso", "Abdominal"]
+      },
+      squat: {
+        "Symmetrische squat": ["Leg Press", "Hack Squat", "Glute Apparaat"],
+        "Asymmetrische squat": ["Leg Press", "Hack Squat", "Glute Apparaat"],
+        "Single leg squat": ["Leg Press", "Hack Squat", "Glute Apparaat"]
+      },
+      hinge: {
+        "Anterior-posterior asymmetrisch": ["Lying Leg Curl", "Abduction", "Seated Leg Curl"],
+        "Axial single leg": ["Lying Leg Curl", "Abduction", "Seated Leg Curl"],
+        "Anterior-posterior symmetrisch": ["Lying Leg Curl", "Abduction", "Seated Leg Curl"],
+        "Axial asymmetrisch": ["Lying Leg Curl", "Abduction", "Seated Leg Curl"],
+        "Anterior-posterior single leg": ["Lying Leg Curl", "Abduction", "Seated Leg Curl"],
+        "Axial symmetrisch": ["Lying Leg Curl", "Abduction", "Seated Leg Curl"]
+      },
+      push: {
+        "Horizontal push": ["Chest Press", "Shoulder Press"],
+        "Vertical push": ["Shoulder Press", "Chest Press"]
+      },
+      pull: {
+        "Vertical pull": ["Lat Pulldown", "Horizontal Row"],
+        "Horizontal pull": ["Horizontal Row", "Lat Pulldown"]
+      },
+      secondary: {
+        Secondary: ["Abdominal", "Calf Raise", "Rotary Torso"]
+      }
+    };
 
     const WARMUP_CONTENT = [
       {
@@ -2261,7 +2310,21 @@
       return patternKey + "::" + subcategory;
     }
 
+    function usingMachinesStyle() {
+      return getTrainingStyle().key === "machines";
+    }
+
+    function getMachinesExerciseOptions(patternKey, subcategory) {
+      if (patternKey === "secondary") {
+        return MACHINES_EXERCISES.secondary.Secondary.slice();
+      }
+      return ((MACHINES_EXERCISES[patternKey] && MACHINES_EXERCISES[patternKey][subcategory]) || []).slice();
+    }
+
     function getStandardExerciseOptions(patternKey, subcategory) {
+      if (usingMachinesStyle()) {
+        return getMachinesExerciseOptions(patternKey, subcategory);
+      }
       if (patternKey === "secondary") {
         return PROGRAM.secondary.exercises.slice();
       }
@@ -2277,6 +2340,9 @@
     }
 
     function getExerciseOptions(patternKey, subcategory) {
+      if (usingMachinesStyle()) {
+        return getMachinesExerciseOptions(patternKey, subcategory);
+      }
       const custom = getCustomExerciseOptions(patternKey, subcategory).filter(Boolean);
       if (custom.length) {
         return custom;
@@ -3834,6 +3900,9 @@
 
     function renderCustomExercises() {
       const view = document.getElementById("customView");
+      const machinesNote = usingMachinesStyle()
+        ? `<p class="muted-note">Machines style is active. Compass now ignores custom exercise lists and uses the fixed machine selection.</p>`
+        : "";
       const patternKeys = ["core", "squat", "push", "pull", "hinge"];
       const cards = patternKeys.map((patternKey) => {
         const pattern = PROGRAM[patternKey];
@@ -3896,6 +3965,7 @@
               <div>
                 <h2>Custom Exercises</h2>
                 <p class="subtle">Enter your own exercises for each subcategory. Leave a field empty to keep using the default list. Then use save & reset to rebuild the current training day immediately.</p>
+                ${machinesNote}
               </div>
             </div>
             <div class="button-row">
