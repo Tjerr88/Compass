@@ -397,6 +397,75 @@
       color: var(--text);
     }
 
+    .video-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 10px;
+      min-height: 38px;
+      border-radius: 12px;
+      padding: 9px 12px;
+      font-size: 0.9rem;
+      font-weight: 800;
+      text-decoration: none;
+    }
+
+    .video-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: grid;
+      place-items: center;
+      padding: 18px;
+      background: rgba(47, 42, 34, 0.68);
+    }
+
+    .video-dialog {
+      width: min(920px, 100%);
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .video-dialog-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .video-dialog-header h3 {
+      margin: 0;
+      font-size: 1rem;
+    }
+
+    .video-frame-wrap {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: #191713;
+    }
+
+    .video-frame-wrap iframe {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+
+    .video-fallback {
+      display: grid;
+      gap: 14px;
+      padding: 18px;
+    }
+
+    .video-fallback .secondary-button {
+      width: fit-content;
+    }
+
     .nudge-line {
       margin: 10px 0 0;
       padding: 10px 12px;
@@ -1508,6 +1577,75 @@
       }
     };
 
+    const MACHINE_VIDEO_URLS = {
+      "Abdominal": "https://youtu.be/cJkbnUozeK8",
+      "Rotary Torso": "https://youtu.be/Iofbo65qEfY",
+      "Leg Press": "https://youtu.be/BqtKBC68GJw",
+      "Hack Squat": "https://youtu.be/rYgNArpwE7E",
+      "Glute Apparaat": "https://youtu.be/ErLphmV-y60",
+      "Lying Leg Curl": "https://youtu.be/5xR8tvg4-yM",
+      "Abduction": "https://youtu.be/H98IP8rARy4",
+      "Seated Leg Curl": "https://youtu.be/t9sTSr-JYSs",
+      "Chest Press": "https://youtu.be/dYF2d_I24uE",
+      "Shoulder Press": "https://youtu.be/GcY6TZxfS0k",
+      "Lat Pulldown": "https://youtu.be/_1fuG9GY254",
+      "Horizontal Row": "https://youtu.be/Zym5r_U8oQw",
+      "Calf Raise": "https://youtu.be/shquCR3VVp4"
+    };
+
+    const STANDARD_VIDEO_URLS = {
+      "Cable Crunch": "https://youtu.be/ToJeyhydUxU",
+      "Ab Wheel": "https://youtu.be/rqiTPdK1c_I",
+      "Deadbug": "https://youtu.be/AHOFOyQyY7w",
+      "Suitcase Carry": "https://youtu.be/BaRMAhD7SP4",
+      "Side Plank": "https://youtu.be/ia57H04rLyU",
+      "Pallof Press": "https://youtu.be/HXrLaqNIkTs",
+      "Chop": "https://youtu.be/c1vlMlkl9Cc",
+      "Lift": "https://youtu.be/0MirCHsRFY8",
+      "Leg Raise": "https://youtu.be/xJJu-WiROM8",
+      "Knee Raise": "https://youtu.be/RD_A-Z15ER4",
+      "Woodchopper": "https://youtu.be/efPLLkysyQs",
+      "Landmine Rotation": "https://youtu.be/EdaEreaEXGE",
+      "Front Squat": "https://youtu.be/84ZWHQZrrKE",
+      "Back Squat": "https://youtu.be/rrJIyZGlK8c",
+      "Leg Press": "https://youtu.be/BqtKBC68GJw",
+      "Lunge": "https://youtu.be/g8-Ge9S0aUw",
+      "Bulgarian Split Squat": "https://youtu.be/Fmjj7wFJWRE",
+      "Side Lunge": "https://youtu.be/apsp_uuXZTU",
+      "Box Pistol": "https://youtu.be/vo4wzSG3QT0",
+      "Step Up": "https://youtu.be/elhu-WC1qk4",
+      "Skater Squat": "https://youtu.be/a9lx_T0f7yc",
+      "Conventional Deadlift": "https://youtu.be/4zVSZDf5Dds",
+      "Romanian Deadlift": "https://youtu.be/7j-2w4-P14I",
+      "Trapbar Deadlift": "https://youtu.be/1jC_nqcSCp8",
+      "B-Stance Hip Thrust": "https://youtu.be/yt-d71CY5vQ",
+      "B-Stance Glute Bridge": "https://youtu.be/uzIxJxBLug4",
+      "Single Leg Deadlift": "https://youtu.be/GoKjrvJi-Iw",
+      "Single Leg Good Morning": "https://youtu.be/KsSO0x2Se84",
+      "Hip Thrust": "https://youtu.be/ZSPmIyX9RZs",
+      "Glute Bridge": "https://youtu.be/DQv1IMQDbE4",
+      "B-Stance Deadlift": "https://youtu.be/NqL21LLv5ak",
+      "B-Stance Good Morning": "https://youtu.be/WukBALiI-Ts",
+      "Single Leg Hip Thrust": "https://youtu.be/oiJaZqglauw",
+      "Single Leg Glute Bridge": "https://youtu.be/Zb3ILLdI6fk",
+      "Bankdrukken": "https://youtu.be/-MAABwVKxok",
+      "Dumbbell Chest Press": "https://youtu.be/ZaDlbm8E8Tg",
+      "Dips": "https://youtu.be/yZ83t4mrPrI",
+      "Barbell Military Press": "https://youtu.be/cGnhixvC8uA",
+      "Kettlebell Military Press": "https://youtu.be/X77O04oL1ek",
+      "Dumbbell Military Press": "https://youtu.be/-lhl9XGo2HE",
+      "Lat Pulldown": "https://youtu.be/JGeRYIZdojU",
+      "Chin Up": "https://youtu.be/bs02BThv4Lc",
+      "Half Kneeling Lat Pull": "https://youtu.be/Vu3OrBHrMNk",
+      "Dumbbell Row": "https://youtu.be/ZRSGpBUVcNw",
+      "Chest Supported Row": "https://youtu.be/w49UGytisik",
+      "Meadow Row": "https://youtu.be/Pie3TyYQEQE",
+      "Lateral Raise": "https://youtu.be/XPPfnSEATJA",
+      "Bayesian Curl": "https://youtu.be/S6HnE1fDlaI",
+      "Overhead Tricep Extension": "https://youtu.be/MegBRxtR14I",
+      "Calf Raise": "https://youtu.be/SRUtMJ0tE2A"
+    };
+
     const WARMUP_CONTENT = [
       {
         heading: "Soft tissue work",
@@ -2321,6 +2459,15 @@
       return ((MACHINES_EXERCISES[patternKey] && MACHINES_EXERCISES[patternKey][subcategory]) || []).slice();
     }
 
+    function getMachinesRotationOptions(patternKey, subcategory) {
+      if (patternKey === "secondary") {
+        return getMachinesExerciseOptions(patternKey, subcategory);
+      }
+      const group = MACHINES_EXERCISES[patternKey] || {};
+      const options = Object.values(group).flat();
+      return [...new Set(options)];
+    }
+
     function getStandardExerciseOptions(patternKey, subcategory) {
       if (usingMachinesStyle()) {
         return getMachinesExerciseOptions(patternKey, subcategory);
@@ -2360,8 +2507,12 @@
     }
 
     function getNextExercise(patternKey, subcategory) {
-      const options = getExerciseOptions(patternKey, subcategory);
-      const key = getSubcategoryKey(patternKey, subcategory);
+      const options = usingMachinesStyle()
+        ? getMachinesRotationOptions(patternKey, subcategory)
+        : getExerciseOptions(patternKey, subcategory);
+      const key = usingMachinesStyle()
+        ? "machines::" + patternKey
+        : getSubcategoryKey(patternKey, subcategory);
       const currentIndex = state.rotations.exercises[key] || 0;
       const exercise = options[currentIndex % options.length];
       state.rotations.exercises[key] = currentIndex + 1;
@@ -2370,9 +2521,16 @@
 
     function getNextSecondaryExercise() {
       const options = getExerciseOptions("secondary", "Secondary");
-      const currentIndex = state.rotations.subcategories.secondary || 0;
+      const key = usingMachinesStyle() ? "machines::secondary" : "secondary";
+      const currentIndex = usingMachinesStyle()
+        ? (state.rotations.exercises[key] || 0)
+        : (state.rotations.subcategories.secondary || 0);
       const exercise = options[currentIndex % options.length];
-      state.rotations.subcategories.secondary = currentIndex + 1;
+      if (usingMachinesStyle()) {
+        state.rotations.exercises[key] = currentIndex + 1;
+      } else {
+        state.rotations.subcategories.secondary = currentIndex + 1;
+      }
       return exercise;
     }
 
@@ -2517,6 +2675,91 @@
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
+    }
+
+    function getExerciseVideoUrl(exercise) {
+      if (!exercise) {
+        return "";
+      }
+      if (usingMachinesStyle() && MACHINE_VIDEO_URLS[exercise]) {
+        return MACHINE_VIDEO_URLS[exercise];
+      }
+      return STANDARD_VIDEO_URLS[exercise] || MACHINE_VIDEO_URLS[exercise] || "";
+    }
+
+    function isYouTubeShortUrl(url) {
+      try {
+        return new URL(url).pathname.startsWith("/shorts/");
+      } catch (error) {
+        return false;
+      }
+    }
+
+    function getYouTubeEmbedUrl(url) {
+      try {
+        const parsed = new URL(url);
+        let videoId = "";
+
+        if (parsed.hostname.includes("youtu.be")) {
+          videoId = parsed.pathname.split("/").filter(Boolean)[0] || "";
+        } else if (parsed.pathname.startsWith("/shorts/")) {
+          videoId = parsed.pathname.split("/").filter(Boolean)[1] || "";
+        } else if (parsed.pathname.startsWith("/embed/")) {
+          videoId = parsed.pathname.split("/").filter(Boolean)[1] || "";
+        } else {
+          videoId = parsed.searchParams.get("v") || "";
+        }
+
+        return videoId ? "https://www.youtube.com/embed/" + encodeURIComponent(videoId) + "?autoplay=1&rel=0" : "";
+      } catch (error) {
+        return "";
+      }
+    }
+
+    function closeVideoModal() {
+      const modal = document.getElementById("videoModal");
+      if (modal) {
+        modal.remove();
+      }
+    }
+
+    function openVideoModal(url, title) {
+      const embedUrl = getYouTubeEmbedUrl(url);
+      const isShort = isYouTubeShortUrl(url);
+      const videoBody = embedUrl && !isShort
+        ? `
+          <div class="video-frame-wrap">
+            <iframe
+              src="${escapeHtml(embedUrl)}"
+              title="${escapeHtml(title)}"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowfullscreen
+              referrerpolicy="strict-origin-when-cross-origin"
+            ></iframe>
+          </div>
+          <div class="video-fallback">
+            <a class="secondary-button" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">Open op YouTube</a>
+          </div>
+        `
+        : `
+          <div class="video-fallback">
+            <p class="subtle">Deze YouTube Short kan meestal niet betrouwbaar embedded worden afgespeeld in een lokale app.</p>
+            <a class="primary-button" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">Open op YouTube</a>
+          </div>
+        `;
+
+      closeVideoModal();
+      document.body.insertAdjacentHTML("beforeend", `
+        <div class="video-modal" id="videoModal" data-action="close-video">
+          <div class="video-dialog" role="dialog" aria-modal="true" aria-label="${escapeHtml(title)}" data-video-dialog>
+            <div class="video-dialog-header">
+              <h3>${escapeHtml(title)}</h3>
+              <button class="secondary-button stepper-button" type="button" data-action="close-video">Close</button>
+            </div>
+            ${videoBody}
+          </div>
+        </div>
+      `);
     }
 
     function getStrengthSetsDone() {
@@ -3175,11 +3418,12 @@
         ? `<div class="nudge-line">${escapeHtml(slot.previousText)}</div>`
         : "";
       const prescription = getSlotPrescription(slot);
-      const exerciseMarkup = freeChoiceMode
-        ? ""
-        : `<p class="exercise-name">${escapeHtml(slot.exercise)}</p>`;
       const prescriptionMarkup = prescription
         ? `<div class="nudge-line">${escapeHtml(prescription)}</div>`
+        : "";
+      const videoUrl = freeChoiceMode ? "" : getExerciseVideoUrl(slot.exercise);
+      const videoMarkup = videoUrl
+        ? `<button class="secondary-button video-link" type="button" data-action="show-video" data-video-url="${escapeHtml(videoUrl)}" data-video-title="${escapeHtml(slot.exercise)}">Video</button>`
         : "";
       const setCount = Number(slot.setsDone) || 0;
       const controlsMarkup = freeChoiceMode
@@ -3216,9 +3460,9 @@
         <article class="slot-card">
           <div class="slot-top">
             <div>
-              <p class="slot-kicker">${escapeHtml(slot.label)}</p>
-              <h4 class="slot-title">${escapeHtml(slot.subcategory)}</h4>
-              ${exerciseMarkup}
+              ${freeChoiceMode ? `<p class="slot-kicker">${escapeHtml(slot.label)}</p>` : ""}
+              <h4 class="slot-title">${escapeHtml(freeChoiceMode ? slot.subcategory : slot.exercise)}</h4>
+              ${videoMarkup}
               ${prescriptionMarkup}
             </div>
             <div class="slot-chip">${escapeHtml(slot.slotType === "main" ? "Main" : slot.label)}</div>
@@ -3499,6 +3743,12 @@
           slot.setsDone = Math.max(0, (Number(slot.setsDone) || 0) + delta);
           saveState();
           renderToday();
+        });
+      });
+
+      document.querySelectorAll('[data-action="show-video"]').forEach((button) => {
+        button.addEventListener("click", () => {
+          openVideoModal(button.getAttribute("data-video-url"), button.getAttribute("data-video-title") || "Exercise video");
         });
       });
 
@@ -4042,15 +4292,21 @@
     }
 
     function previewNextExercise(patternKey, subcategory) {
-      const options = getExerciseOptions(patternKey, subcategory);
-      const key = getSubcategoryKey(patternKey, subcategory);
+      const options = usingMachinesStyle()
+        ? getMachinesRotationOptions(patternKey, subcategory)
+        : getExerciseOptions(patternKey, subcategory);
+      const key = usingMachinesStyle()
+        ? "machines::" + patternKey
+        : getSubcategoryKey(patternKey, subcategory);
       const currentIndex = state.rotations.exercises[key] || 0;
       return options[currentIndex % options.length];
     }
 
     function previewNextSecondaryExercise() {
       const options = getExerciseOptions("secondary", "Secondary");
-      const currentIndex = state.rotations.subcategories.secondary || 0;
+      const currentIndex = usingMachinesStyle()
+        ? (state.rotations.exercises["machines::secondary"] || 0)
+        : (state.rotations.subcategories.secondary || 0);
       return options[currentIndex % options.length];
     }
 
@@ -4142,6 +4398,23 @@
       syncTimerState();
       updateTimerDisplay();
       updateWakeLock();
+    });
+
+    document.addEventListener("click", (event) => {
+      const closeTarget = event.target.closest('[data-action="close-video"]');
+      if (!closeTarget) {
+        return;
+      }
+      if (event.target.closest("[data-video-dialog]") && event.target.getAttribute("data-action") !== "close-video") {
+        return;
+      }
+      closeVideoModal();
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        closeVideoModal();
+      }
     });
 
     renderApp();
