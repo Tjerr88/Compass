@@ -305,6 +305,7 @@
       border-color: rgba(85, 98, 74, 0.20);
       background:
         linear-gradient(180deg, rgba(251, 246, 238, 0.96), rgba(241, 232, 215, 0.96));
+      padding: 18px;
     }
 
     .focus-card::before {
@@ -321,7 +322,7 @@
       margin-top: 6px;
       margin-bottom: 8px;
       font-family: var(--font-display);
-      font-size: 1.45rem;
+      font-size: 1.22rem;
       color: #30261d;
     }
 
@@ -1428,7 +1429,7 @@
     const LS_FOCUS_BAG_KEY = "session_compass_focus_bag_v2";
     const LS_FOCUS_DAY_KEY = "session_compass_focus_day_v2";
     const LS_FOCUS_TODAY_KEY = "session_compass_focus_today_v2";
-    const APP_VERSION = 5;
+    const APP_VERSION = 6;
     let deferredInstallPrompt = null;
     const TABS = { TODAY: "today", OPTIONS: "options", CUSTOM: "custom" };
     const RECOVERY_FIELDS = [
@@ -3306,6 +3307,7 @@
       if (isTodayClosed()) {
         view.innerHTML = `
           <div class="stack">
+            ${renderFocusOfTheDay()}
             ${renderFinishedState()}
           </div>
         `;
@@ -3318,6 +3320,7 @@
       if (plan.pendingCheckin) {
         view.innerHTML = `
           <div class="stack">
+            ${renderFocusOfTheDay()}
             ${renderRecoveryGate(plan)}
           </div>
         `;
@@ -3335,6 +3338,7 @@
 
         view.innerHTML = `
           <div class="stack">
+            ${renderFocusOfTheDay()}
             <article class="card action-card">
               <div class="card-header">
                 <div>
@@ -3374,6 +3378,7 @@
 
       view.innerHTML = `
         <div class="stack">
+          ${renderFocusOfTheDay()}
           <article class="card">
             <div class="card-header">
               <div>
@@ -3383,11 +3388,11 @@
               </div>
               <div class="slot-chip">Session ${state.trainingSessionsCompleted + 1}</div>
             </div>
+            ${guidanceHtml}
             ${warmupHtml}
             ${groupsHtml}
             ${carryOverNote}
             ${modeNote}
-            ${guidanceHtml}
             ${cooldownHtml}
             <div class="button-row">
               <button class="primary-button" type="button" id="finishWorkoutButton">Complete session</button>
