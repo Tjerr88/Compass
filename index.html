@@ -471,13 +471,30 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      margin-top: 10px;
-      min-height: 38px;
-      border-radius: 12px;
-      padding: 9px 12px;
-      font-size: 0.9rem;
+      min-height: 32px;
+      border-radius: 10px;
+      padding: 7px 10px;
+      font-size: 0.82rem;
       font-weight: 800;
       text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .slot-meta-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+
+    .slot-meta-row .nudge-line {
+      flex: 1 1 190px;
+      margin-top: 0;
+    }
+
+    .slot-meta-row .video-link {
+      flex: 0 0 auto;
     }
 
     .video-modal {
@@ -1452,22 +1469,24 @@
         label: "Strength",
         summary: "Default strength guideline.",
         mainGuidance: [
-          "Main lifts: 3-6 sets of 6-12.",
-          "Max effort within quality.",
-          "Use the nudge buttons based on load, technique, and reps."
+          "Main lifts: 2-5 sets of 1-5 reps.",
+          "Keep reps heavy, clean, and controlled.",
+          "Nudge up when the top of the range is clearly there; nudge down when speed or technique drops."
         ],
-        mainPrescription: "3-6 sets van 6-12 reps"
+        mainPrescription: "2-5 sets van 1-5 reps"
       },
       hypertrophy: {
         key: "hypertrophy",
         label: "Hypertrophy",
         summary: "More volume-focused strength work.",
         mainGuidance: [
-          "Main lifts: 3-6 sets of 6-12.",
-          "Stay close to failure with clean reps.",
-          "Nudge up when the top of the range is clearly there; nudge down when quality drops."
+          "Max effort: main lifts use 3-6 sets of 6-12 reps.",
+          "Minimum target: complete at least 3 sets of 6 clean reps. If you cannot, the load is too heavy.",
+          "After set 3, keep adding sets while each set stays in the 6-12 rep range, up to 6 sets total.",
+          "Stop that lift when a set drops below 6 reps. If you can complete 6 sets of 12, the load is too light."
         ],
-        mainPrescription: "3-6 sets van 6-12 reps"
+        mainPrescription: "Max effort: 3-6 sets van 6-12 reps",
+        buildGuidance: "Build day: apply max effort per main lift. Add sets after the minimum while reps stay in range."
       },
       med: {
         key: "med",
@@ -2383,8 +2402,8 @@
       const trainingStyle = getTrainingStyle();
       if (bandKey === "low") {
         return {
-          title: "Minimum Strength",
-          summary: "Today includes only Main A and Main B, with 3 sets of 6-12 at RIR 4.",
+          title: "Resistance Training",
+          summary: "Today includes only Main A and Main B.",
           guidance: [
             "Main A and Main B.",
             ...trainingStyle.mainGuidance,
@@ -2395,7 +2414,7 @@
       }
       if (bandKey === "medium") {
         return {
-          title: "Essential Strength",
+          title: "Resistance Training",
           summary: "Today includes Main A and Main B, with core work at the end.",
           guidance: [
             (trainingStyle.coreGuidance || "Core at the end: 2 sets of 10-12."),
@@ -2405,12 +2424,12 @@
         };
       }
       return {
-        title: "Full Strength",
+        title: "Resistance Training",
         summary: "Today includes Main A and Main B, with core and secondary work at the end.",
         guidance: [
           ...trainingStyle.mainGuidance,
           (trainingStyle.supportGuidance || "Core and secondary both come at the end."),
-          "Build day: take volume if quality stays high."
+          (trainingStyle.buildGuidance || "Build day: take volume if quality stays high.")
         ]
       };
     }
@@ -3302,7 +3321,6 @@
       if (isTodayClosed()) {
         view.innerHTML = `
           <div class="stack">
-            ${renderFocusOfTheDay()}
             ${renderFinishedState()}
           </div>
         `;
@@ -3315,7 +3333,6 @@
       if (plan.pendingCheckin) {
         view.innerHTML = `
           <div class="stack">
-            ${renderFocusOfTheDay()}
             ${renderRecoveryGate(plan)}
           </div>
         `;
@@ -3333,8 +3350,6 @@
 
         view.innerHTML = `
           <div class="stack">
-            ${renderFocusOfTheDay()}
-            ${renderRecoverySnapshot(plan)}
             <article class="card action-card">
               <div class="card-header">
                 <div>
@@ -3345,20 +3360,6 @@
                 <div class="slot-chip">${escapeHtml(SESSION_LABELS[plan.effectiveSessionType])}</div>
               </div>
               <div class="action-value">${escapeHtml(actionValue)}</div>
-              <div class="session-overview">
-                <div class="overview-card">
-                  <span class="overview-label">Direction</span>
-                  <span class="overview-value">${escapeHtml(SESSION_LABELS[plan.effectiveSessionType])}</span>
-                </div>
-                <div class="overview-card">
-                  <span class="overview-label">Dose</span>
-                  <span class="overview-value">${escapeHtml(plan.subtitle)}</span>
-                </div>
-                <div class="overview-card">
-                  <span class="overview-label">Reason</span>
-                  <span class="overview-value">${escapeHtml(plan.summary)}</span>
-                </div>
-              </div>
               ${hiitHtml}
               ${renderRecoveryGuidance(plan)}
               <div class="button-row">
@@ -3371,10 +3372,6 @@
         bindWorkoutControls();
         document.getElementById("finishRecoveryButton").addEventListener("click", handleFinishRecoveryDay);
         document.getElementById("skipDayButton").addEventListener("click", handleSkipDay);
-        const editButton = document.getElementById("editRecoveryButton");
-        if (editButton) {
-          editButton.addEventListener("click", handleEditRecoveryCheckin);
-        }
         return;
       }
 
@@ -3392,10 +3389,6 @@
 
       view.innerHTML = `
         <div class="stack">
-          ${renderFocusOfTheDay()}
-          ${renderRecoverySnapshot(plan)}
-          ${guidanceHtml}
-          ${warmupHtml}
           <article class="card">
             <div class="card-header">
               <div>
@@ -3405,27 +3398,11 @@
               </div>
               <div class="slot-chip">Session ${state.trainingSessionsCompleted + 1}</div>
             </div>
-            <div class="session-overview" style="margin-bottom: 16px;">
-              <div class="overview-card">
-                <span class="overview-label">Direction</span>
-                <span class="overview-value">${escapeHtml(getTrainingStyle().label)}</span>
-              </div>
-              <div class="overview-card">
-                <span class="overview-label">Dose</span>
-                <span class="overview-value">${escapeHtml(plan.strengthDose.title)}</span>
-              </div>
-              <div class="overview-card">
-                <span class="overview-label">Reason</span>
-                <span class="overview-value">${escapeHtml(plan.summary)}</span>
-              </div>
-              <div class="overview-card">
-                <span class="overview-label">Sets done</span>
-                <span class="overview-value">${escapeHtml(String(getStrengthSetsDone()))} total</span>
-              </div>
-            </div>
+            ${warmupHtml}
             ${groupsHtml}
             ${carryOverNote}
             ${modeNote}
+            ${guidanceHtml}
             ${cooldownHtml}
             <div class="button-row">
               <button class="primary-button" type="button" id="finishWorkoutButton">Complete session</button>
@@ -3437,7 +3414,6 @@
 
       bindWorkoutControls();
       document.getElementById("skipDayButton").addEventListener("click", handleSkipDay);
-      document.getElementById("editRecoveryButton").addEventListener("click", handleEditRecoveryCheckin);
     }
 
     function renderTrainingGroups(workout, plan) {
@@ -3528,6 +3504,9 @@
       const videoMarkup = videoUrl
         ? `<button class="secondary-button video-link" type="button" data-action="show-video" data-video-url="${escapeHtml(videoUrl)}" data-video-title="${escapeHtml(slot.exercise)}">Video</button>`
         : "";
+      const metaMarkup = prescriptionMarkup || videoMarkup
+        ? `<div class="slot-meta-row">${prescriptionMarkup}${videoMarkup}</div>`
+        : "";
       const setCount = Number(slot.setsDone) || 0;
       const controlsMarkup = freeChoiceMode
         ? ""
@@ -3565,8 +3544,7 @@
             <div>
               ${freeChoiceMode ? `<p class="slot-kicker">${escapeHtml(slot.label)}</p>` : ""}
               <h4 class="slot-title">${escapeHtml(freeChoiceMode ? slot.subcategory : slot.exercise)}</h4>
-              ${videoMarkup}
-              ${prescriptionMarkup}
+              ${metaMarkup}
             </div>
             <div class="slot-chip">${escapeHtml(slot.slotType === "main" ? "Main" : slot.label)}</div>
           </div>
@@ -3581,36 +3559,32 @@
       const guidanceItems = plan.strengthDose.guidance;
 
       return `
-        <article class="card soft">
-          <details class="accordion">
-            <summary>Training guidance</summary>
-            <div class="accordion-body">
-              <ul class="detail-list">
-                ${guidanceItems.map((item) => `<li>${item}</li>`).join("")}
-              </ul>
-            </div>
-          </details>
-        </article>
+        <details class="accordion" style="margin-top: 18px;">
+          <summary>Training guidance</summary>
+          <div class="accordion-body">
+            <ul class="detail-list">
+              ${guidanceItems.map((item) => `<li>${item}</li>`).join("")}
+            </ul>
+          </div>
+        </details>
       `;
     }
 
     function renderWarmupAccordion() {
       return `
-        <article class="card soft">
-          <details class="accordion">
-            <summary>Warm-up</summary>
-            <div class="accordion-body">
-              ${WARMUP_CONTENT.map((section) => `
-                <div class="mini-card" style="margin-top: 12px;">
-                  <h4>${escapeHtml(section.heading)}</h4>
-                  <ul class="detail-list">
-                    ${section.items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
-                  </ul>
-                </div>
-              `).join("")}
-            </div>
-          </details>
-        </article>
+        <details class="accordion" style="margin-top: 18px;">
+          <summary>Warm-up</summary>
+          <div class="accordion-body">
+            ${WARMUP_CONTENT.map((section) => `
+              <div class="mini-card" style="margin-top: 12px;">
+                <h4>${escapeHtml(section.heading)}</h4>
+                <ul class="detail-list">
+                  ${section.items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
+                </ul>
+              </div>
+            `).join("")}
+          </div>
+        </details>
       `;
     }
 
@@ -4159,7 +4133,7 @@
             <div class="card-header">
               <div>
                 <h2>Options</h2>
-                <p class="subtle">Settings, exercise overview, and history.</p>
+                <p class="subtle">Settings and history.</p>
               </div>
             </div>
             <div class="toggle-row">
@@ -4180,42 +4154,52 @@
                 ${trainingStyleCards}
               </div>
             </div>
-            <div class="mini-card" style="margin-top: 14px;">
-              <h3>Compass logic</h3>
-              <p class="subtle">Compass works by calendar day. No training log yesterday means Strength today. If yesterday was Strength, today becomes Zone 2 when no Zone 2 was logged in the last 7 days, otherwise HIIT when no HIIT was logged in the last 7 days, otherwise Active recovery. Training blocks alternate between 3 days and 2 days: after a 3-day block comes a recovery day, then after the next 2-day block comes a recovery day, then back to 3. Empty days count as real rest days and reset the block back to the 3-day version. The app also caps training at 5 logged training days in the last 7 calendar days.</p>
-            </div>
-            <div class="mini-card" style="margin-top: 14px;">
-              <h3>Next main rotation</h3>
-              <p class="subtle">${escapeHtml(nextOrder)}</p>
-            </div>
             <div class="button-row">
               <button class="ghost-button" type="button" id="resetButton">Reset all</button>
             </div>
           </article>
 
-          <article class="card">
-            <div class="card-header">
-              <div>
-                <h3>Exercise rotation</h3>
-                <p class="subtle">The structure stays the same; Compass only rotates through content and subcategories.</p>
+          <article class="card soft">
+            <details class="accordion">
+              <summary>Compass logic</summary>
+              <div class="accordion-body">
+                <p class="subtle">Compass works by calendar day. No training log yesterday means Strength today. If yesterday was Strength, today becomes Zone 2 when no Zone 2 was logged in the last 7 days, otherwise HIIT when no HIIT was logged in the last 7 days, otherwise Active recovery. Training blocks alternate between 3 days and 2 days: after a 3-day block comes a recovery day, then after the next 2-day block comes a recovery day, then back to 3. Empty days count as real rest days and reset the block back to the 3-day version. The app also caps training at 5 logged training days in the last 7 calendar days.</p>
               </div>
-            </div>
-            <div class="library-grid">
-              ${rotationCards}
-            </div>
+            </details>
           </article>
 
-          <article class="card">
-            <div class="card-header">
-              <div>
-                <h3>Exercise overview</h3>
-                <p class="subtle">All main patterns, subcategories, and exercises in one place.</p>
+          <article class="card soft">
+            <details class="accordion">
+              <summary>Next main rotation</summary>
+              <div class="accordion-body">
+                <p class="subtle">${escapeHtml(nextOrder)}</p>
               </div>
-            </div>
-            <div class="library-grid">
-              ${libraryCards}
-              ${secondaryCard}
-            </div>
+            </details>
+          </article>
+
+          <article class="card soft">
+            <details class="accordion">
+              <summary>Exercise rotation</summary>
+              <div class="accordion-body">
+                <p class="subtle">The structure stays the same; Compass only rotates through content and subcategories.</p>
+                <div class="library-grid" style="margin-top: 12px;">
+                  ${rotationCards}
+                </div>
+              </div>
+            </details>
+          </article>
+
+          <article class="card soft">
+            <details class="accordion">
+              <summary>Exercise overview</summary>
+              <div class="accordion-body">
+                <p class="subtle">All main patterns, subcategories, and exercises in one place.</p>
+                <div class="library-grid" style="margin-top: 12px;">
+                  ${libraryCards}
+                  ${secondaryCard}
+                </div>
+              </div>
+            </details>
           </article>
 
           <article class="card">
