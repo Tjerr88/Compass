@@ -166,7 +166,7 @@
 
     .hero-meta {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
       gap: 8px;
       margin-top: 14px;
     }
@@ -224,7 +224,7 @@
 
     .tabs {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 8px;
       margin-top: 18px;
       padding: 7px;
@@ -923,14 +923,12 @@
     }
 
     .recovery-slider-head {
-      display: flex;
-      align-items: baseline;
-      justify-content: space-between;
+      display: grid;
       gap: 12px;
     }
 
     .recovery-slider-value {
-      font-size: 1.4rem;
+      font-size: 1rem;
       font-weight: 800;
       color: var(--primary-strong);
       letter-spacing: 0;
@@ -1214,7 +1212,7 @@
       }
 
       .tabs {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 6px;
         margin-top: 12px;
         padding: 5px;
@@ -1410,7 +1408,6 @@
         </div>
         <div class="hero-meta">
           <div class="pill" id="heroDayPill">Day 1</div>
-          <div class="pill" id="heroModePill">Free choice off</div>
           <div class="pill" id="heroProgressPill">0 sessions completed</div>
         </div>
       </div>
@@ -1419,7 +1416,6 @@
     <nav class="tabs" aria-label="Navigation">
       <button class="tab-button active" data-tab="today" type="button">Today</button>
       <button class="tab-button" data-tab="options" type="button">Options</button>
-      <button class="tab-button" data-tab="custom" type="button">Custom Exercises</button>
     </nav>
 
     <section class="view active" id="todayView"></section>
@@ -1436,9 +1432,9 @@
     let deferredInstallPrompt = null;
     const TABS = { TODAY: "today", OPTIONS: "options", CUSTOM: "custom" };
     const RECOVERY_FIELDS = [
-      { key: "energy", label: "Energy" },
-      { key: "body", label: "Body / recovery" },
-      { key: "mind", label: "Mind / stress" }
+      { key: "body", label: "Soreness / recovery", labels: ["pain", "limited / stiff", "slightly stiff", "loose", "fresh"] },
+      { key: "energy", label: "Energy / stress", labels: ["empty", "heavy", "tired / neutral", "good", "sharp"] },
+      { key: "mind", label: "Sleep quality", labels: ["very poor", "poor", "interrupted", "okay / good", "restorative"] }
     ];
     const RECOVERY_BANDS = {
       override: { key: "override", label: "Recovery override", min: 3, max: 7 },
@@ -1447,7 +1443,7 @@
       high: { key: "high", label: "High", min: 14, max: 15 }
     };
     const SESSION_LABELS = {
-      strength: "Strength",
+      strength: "Resistance Training",
       zone2: "Zone 2",
       hiit: "HIIT",
       recovery: "Recovery day",
@@ -2265,6 +2261,13 @@
 
     function getRecoveryTotal(checkin) {
       return RECOVERY_FIELDS.reduce((sum, field) => sum + Number(checkin[field.key] || 0), 0);
+    }
+
+    function formatRecoveryFieldValue(key, value) {
+      const field = RECOVERY_FIELDS.find((item) => item.key === key);
+      const safeValue = Math.max(1, Math.min(5, Number(value) || 3));
+      const label = field && field.labels ? field.labels[safeValue - 1] : "";
+      return safeValue + " - " + label;
     }
 
     function getRecoveryBand(total) {
@@ -3216,13 +3219,11 @@
 
     function renderRecoveryGate(plan) {
       const draft = getTodayRecoveryCheckin() || createDefaultRecoveryCheckin();
-      const draftTotal = getRecoveryTotal(draft);
-      const draftBand = getRecoveryBand(draftTotal);
       const sliderRows = RECOVERY_FIELDS.map((field) => `
         <label class="mini-card recovery-slider-card" style="display:grid;">
           <div class="recovery-slider-head">
             <strong>${escapeHtml(field.label)}</strong>
-            <span class="recovery-slider-value" id="recoveryValue-${escapeHtml(field.key)}">${escapeHtml(draft[field.key] || 3)}</span>
+            <span class="recovery-slider-value" id="recoveryValue-${escapeHtml(field.key)}">${escapeHtml(formatRecoveryFieldValue(field.key, draft[field.key] || 3))}</span>
           </div>
           <input
             type="range"
@@ -3236,7 +3237,6 @@
         </label>
       `).join("");
 
-      const nextLabel = SESSION_LABELS[plan.baseSessionType] || "Session";
       return `
         <article class="card action-card">
           <div class="card-header">
@@ -3249,20 +3249,6 @@
           </div>
           <div class="stats-grid">
             ${sliderRows}
-          </div>
-          <div class="score-panel">
-            <div class="overview-card">
-              <span class="overview-label">Recovery total</span>
-              <span class="overview-value" id="recoveryTotalValue">${escapeHtml(draftTotal)}/15</span>
-            </div>
-            <div class="overview-card">
-              <span class="overview-label">Band</span>
-              <span class="overview-value" id="recoveryBandValue">${escapeHtml(draftBand.label)}</span>
-            </div>
-            <div class="overview-card">
-              <span class="overview-label">Expected direction</span>
-              <span class="overview-value">${escapeHtml(nextLabel)}</span>
-            </div>
           </div>
           <div class="button-row" style="margin-top:16px;">
             <button class="primary-button" type="button" id="startSessionButton">Show today's session</button>
@@ -3380,7 +3366,7 @@
       const warmupHtml = renderWarmupAccordion();
       const cooldownHtml = renderCooldownAccordion();
       const carryOverNote = workout.planDate && workout.planDate !== getTodayKey()
-        ? `<p class="muted-note">You are continuing an open strength session from ${escapeHtml(workout.planDate)}. The exercise order stays the same until you complete or skip it.</p>`
+        ? `<p class="muted-note">You are continuing an open resistance training session from ${escapeHtml(workout.planDate)}. The exercise order stays the same until you complete or skip it.</p>`
         : "";
       const modeNote = workout.freeChoiceMode
         ? `<p class="muted-note">Free choice is on for this session: each slot shows only the pattern and subcategory, without load fields or nudge buttons. The set tracker stays available so you can still count today's work.</p>`
@@ -3847,17 +3833,7 @@
           state.recoveryCheckins[getTodayKey()] = draft;
           const label = document.getElementById("recoveryValue-" + key);
           if (label) {
-            label.textContent = value;
-          }
-          const total = getRecoveryTotal(draft);
-          const band = getRecoveryBand(total);
-          const totalLabel = document.getElementById("recoveryTotalValue");
-          const bandLabel = document.getElementById("recoveryBandValue");
-          if (totalLabel) {
-            totalLabel.textContent = total + "/15";
-          }
-          if (bandLabel) {
-            bandLabel.textContent = band.label;
+            label.textContent = formatRecoveryFieldValue(key, value);
           }
           saveState();
         });
@@ -3965,7 +3941,7 @@
         id: "history-" + Date.now(),
         type: "training",
         sessionType: "strength",
-        title: todayPlan.strengthDose ? todayPlan.strengthDose.title : "Strength",
+        title: todayPlan.strengthDose ? todayPlan.strengthDose.title : "Resistance Training",
         completedAt: new Date().toISOString(),
         recoveryBand: todayPlan.band ? todayPlan.band.label : "",
         recoveryTotal: todayPlan.total || null,
@@ -4112,7 +4088,7 @@
         `;
 
       const pendingModeNote = state.currentWorkout && state.currentWorkout.freeChoiceMode !== state.settings.freeChoice
-        ? `<p class="muted-note">The current strength session has already been generated. The new Free choice setting will fully apply once you rebuild that session.</p>`
+        ? `<p class="muted-note">The current resistance training session has already been generated. The new Free choice setting will fully apply once you rebuild that session.</p>`
         : "";
       const trainingStyleCards = Object.values(TRAINING_STYLE_OPTIONS).map((option) => `
         <label class="mini-card">
@@ -4148,7 +4124,7 @@
             </div>
             <div class="mini-card" style="margin-top: 14px;">
               <h3>Training style</h3>
-              <p class="subtle">Choose the guideline shown during strength sessions.</p>
+              <p class="subtle">Choose the guideline shown during resistance training.</p>
               <div class="library-grid" style="margin-top: 12px;">
                 ${trainingStyleCards}
               </div>
@@ -4162,7 +4138,7 @@
             <details class="accordion">
               <summary>Compass logic</summary>
               <div class="accordion-body">
-                <p class="subtle">Compass works by calendar day. No training log yesterday means Strength today. If yesterday was Strength, today becomes Zone 2 when no Zone 2 was logged in the last 7 days, otherwise HIIT when no HIIT was logged in the last 7 days, otherwise Active recovery. Training blocks alternate between 3 days and 2 days: after a 3-day block comes a recovery day, then after the next 2-day block comes a recovery day, then back to 3. Empty days count as real rest days and reset the block back to the 3-day version. The app also caps training at 5 logged training days in the last 7 calendar days.</p>
+                <p class="subtle">Compass works by calendar day. No training log yesterday means Resistance Training today. If yesterday was Resistance Training, today becomes Zone 2 when no Zone 2 was logged in the last 7 days, otherwise HIIT when no HIIT was logged in the last 7 days, otherwise Active recovery. Training blocks alternate between 3 days and 2 days: after a 3-day block comes a recovery day, then after the next 2-day block comes a recovery day, then back to 3. Empty days count as real rest days and reset the block back to the 3-day version. The app also caps training at 5 logged training days in the last 7 calendar days.</p>
               </div>
             </details>
           </article>
@@ -4201,6 +4177,15 @@
             </details>
           </article>
 
+          <article class="card soft">
+            <details class="accordion">
+              <summary>Advanced: custom exercises</summary>
+              <div class="accordion-body">
+                ${renderCustomExercisesMarkup()}
+              </div>
+            </details>
+          </article>
+
           <article class="card">
             <div class="card-header">
               <div>
@@ -4234,8 +4219,7 @@
       document.getElementById("resetButton").addEventListener("click", handleReset);
     }
 
-    function renderCustomExercises() {
-      const view = document.getElementById("customView");
+    function renderCustomExercisesMarkup() {
       const machinesNote = usingMachinesStyle()
         ? `<p class="muted-note">Machines style is active. Compass now ignores custom exercise lists and uses the fixed machine selection.</p>`
         : "";
@@ -4248,7 +4232,7 @@
           return `
             <div class="mini-card">
               <h4>${escapeHtml(subcategory)}</h4>
-              <p class="subtle">${hasOverride ? "Custom list active." : "Default list active."} You can edit individual exercises below or replace everything.</p>
+              ${hasOverride ? `<p class="subtle">Custom list active.</p>` : ""}
               <label class="input-wrap">
                 <span class="input-label">Custom exercises</span>
                 <textarea data-action="custom-exercises" data-pattern="${escapeHtml(patternKey)}" data-subcategory="${escapeHtml(subcategory)}" placeholder="Type exercises separated by commas or new lines">${escapeHtml(getEditorValue(patternKey, subcategory))}</textarea>
@@ -4265,7 +4249,6 @@
             <div class="card-header">
               <div>
                 <h3>${escapeHtml(pattern.label)}</h3>
-                <p class="subtle">As soon as you add something here, the generator will use your list instead of the default list.</p>
               </div>
             </div>
             <div class="library-grid">${blocks}</div>
@@ -4282,7 +4265,7 @@
             </div>
           </div>
           <div class="mini-card">
-            <p class="subtle">${hasCustomExerciseOverride("secondary", "Secondary") ? "Custom list active." : "Default list active."} You can edit individual exercises below or replace everything.</p>
+            ${hasCustomExerciseOverride("secondary", "Secondary") ? `<p class="subtle">Custom list active.</p>` : ""}
             <label class="input-wrap">
               <span class="input-label">Custom exercises</span>
               <textarea data-action="custom-exercises" data-pattern="secondary" data-subcategory="Secondary" placeholder="Type exercises separated by commas or new lines">${escapeHtml(getEditorValue("secondary", "Secondary"))}</textarea>
@@ -4294,13 +4277,13 @@
         </article>
       `;
 
-      view.innerHTML = `
+      return `
         <div class="stack">
           <article class="card">
             <div class="card-header">
               <div>
                 <h2>Custom Exercises</h2>
-                <p class="subtle">Enter your own exercises for each subcategory. Leave a field empty to keep using the default list. Then use save & reset to rebuild the current training day immediately.</p>
+                <p class="subtle">Optional. Add exercises only where you want to override the default list. Empty fields keep the default list.</p>
                 ${machinesNote}
               </div>
             </div>
@@ -4313,6 +4296,11 @@
           ${secondaryCard}
         </div>
       `;
+    }
+
+    function renderCustomExercises() {
+      const view = document.getElementById("customView");
+      view.innerHTML = renderCustomExercisesMarkup();
 
       bindCustomExerciseControls();
     }
@@ -4410,7 +4398,6 @@
     function updateHero() {
       if (isTodayClosed()) {
         document.getElementById("heroDayPill").textContent = "Finished - Today";
-        document.getElementById("heroModePill").textContent = "Free choice " + (state.settings.freeChoice ? "on" : "off");
         document.getElementById("heroProgressPill").textContent = state.trainingSessionsCompleted + " sessions completed";
         return;
       }
@@ -4423,7 +4410,6 @@
         ? (SESSION_LABELS[plan.baseSessionType] || "Session")
         : (plan.band.label + " - " + plan.total + "/15");
       document.getElementById("heroDayPill").textContent = heroLabel + " - " + heroDetail;
-      document.getElementById("heroModePill").textContent = "Free choice " + (state.settings.freeChoice ? "on" : "off");
       document.getElementById("heroProgressPill").textContent = state.trainingSessionsCompleted + " sessions completed";
     }
 
