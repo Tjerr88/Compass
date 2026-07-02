@@ -1404,7 +1404,6 @@
         <img class="brand-logo" src="logo-compass.png" alt="Compass">
         <div class="eyebrow">Daily Practice</div>
         <h1>Compass</h1>
-        <p>Daily Practice for Strength, Health &amp; Character</p>
         <div class="install-row">
           <button class="install-button" id="installAppButton" type="button">Install Compass</button>
           <span class="install-status" id="installStatus" aria-live="polite"></span>
@@ -4488,7 +4487,7 @@
 
       if (isStandaloneMode()) {
         button.classList.remove("available");
-        status.textContent = "Compass is installed.";
+        status.textContent = "";
         return;
       }
 
@@ -4510,7 +4509,7 @@
 
       window.addEventListener("appinstalled", () => {
         deferredInstallPrompt = null;
-        updateInstallUi("Compass is installed.");
+        updateInstallUi("");
       });
 
       button.addEventListener("click", async () => {
