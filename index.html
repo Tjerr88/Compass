@@ -4,6 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Compass</title>
+  <meta name="theme-color" content="#384437">
+  <meta name="description" content="Compass - daily practice for strength, health and character.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Compass">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="preload" as="image" href="background-session-compass.png">
+  <link rel="preload" as="image" href="logo-compass.png">
   <style>
     :root {
       --bg: #e7dece;
@@ -48,6 +58,8 @@
       font-family: var(--font-body);
       color: var(--text);
       background:
+        linear-gradient(180deg, rgba(241, 234, 220, 0.80), rgba(231, 222, 206, 0.96)),
+        url("background-compass-map.png") center top / cover fixed,
         radial-gradient(circle at top left, rgba(143, 116, 76, 0.12), transparent 30%),
         radial-gradient(circle at bottom right, rgba(85, 98, 74, 0.10), transparent 24%),
         linear-gradient(180deg, #f1eadc 0%, var(--bg) 100%);
@@ -76,8 +88,8 @@
       display: block;
       width: 100%;
       background:
-        linear-gradient(180deg, rgba(255, 250, 242, 0.94), rgba(242, 234, 219, 0.94)),
-        linear-gradient(90deg, rgba(143, 116, 76, 0.08), rgba(85, 98, 74, 0.05));
+        linear-gradient(90deg, rgba(251, 247, 239, 0.98), rgba(251, 247, 239, 0.82) 48%, rgba(251, 247, 239, 0.40)),
+        url("background-session-compass.png") center / cover;
       border: 1px solid rgba(115, 91, 58, 0.18);
       border-radius: 22px;
       box-shadow: var(--shadow);
@@ -85,6 +97,7 @@
       backdrop-filter: blur(10px);
       overflow: hidden;
       position: relative;
+      min-height: 370px;
     }
 
     .hero::after {
@@ -97,6 +110,26 @@
       border-top: 1px solid rgba(143, 116, 76, 0.28);
       border-bottom: 1px solid rgba(143, 116, 76, 0.18);
       opacity: 0.9;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      align-content: end;
+      min-height: 334px;
+      max-width: 620px;
+    }
+
+    .brand-logo {
+      width: 112px;
+      height: 112px;
+      object-fit: contain;
+      border-radius: 22px;
+      background: rgba(255, 252, 246, 0.72);
+      border: 1px solid rgba(143, 116, 76, 0.16);
+      box-shadow: 0 16px 34px rgba(67, 52, 31, 0.12);
+      margin-bottom: 14px;
     }
 
     .eyebrow {
@@ -120,7 +153,7 @@
       font-weight: 700;
       font-size: clamp(1.9rem, 4vw, 3rem);
       line-height: 1.08;
-      letter-spacing: -0.02em;
+      letter-spacing: 0;
       color: #2d241b;
     }
 
@@ -135,7 +168,44 @@
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 8px;
-      margin-top: 0;
+      margin-top: 14px;
+    }
+
+    .install-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+      align-items: center;
+    }
+
+    .install-button {
+      display: none;
+      appearance: none;
+      border: 0;
+      border-radius: 16px;
+      padding: 13px 16px;
+      background: linear-gradient(135deg, #5c6a50, var(--primary-strong));
+      color: #f8f1e4;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 12px 26px rgba(56, 68, 55, 0.20);
+      transition: transform var(--transition), opacity var(--transition);
+    }
+
+    .install-button.available {
+      display: inline-flex;
+    }
+
+    .install-button:active {
+      transform: translateY(1px) scale(0.99);
+    }
+
+    .install-status {
+      min-height: 22px;
+      color: var(--primary-strong);
+      font-size: 0.9rem;
+      font-weight: 700;
     }
 
     .pill {
@@ -271,7 +341,7 @@
     .card h3,
     .card h4 {
       margin: 0;
-      letter-spacing: -0.02em;
+      letter-spacing: 0;
       font-family: var(--font-display);
       font-weight: 700;
     }
@@ -686,7 +756,7 @@
     .action-value {
       font-size: clamp(1.5rem, 3vw, 2rem);
       font-weight: 800;
-      letter-spacing: -0.03em;
+      letter-spacing: 0;
       line-height: 1.04;
       color: #2c241a;
     }
@@ -821,7 +891,7 @@
     .stat-value {
       font-size: 1.15rem;
       font-weight: 800;
-      letter-spacing: -0.02em;
+      letter-spacing: 0;
     }
 
     .mini-card h4 {
@@ -846,7 +916,7 @@
       font-size: 1.4rem;
       font-weight: 800;
       color: var(--primary-strong);
-      letter-spacing: -0.03em;
+      letter-spacing: 0;
     }
 
     input[type="range"] {
@@ -1020,7 +1090,7 @@
     .timer-display {
       font-size: clamp(2rem, 7vw, 3rem);
       font-weight: 800;
-      letter-spacing: -0.04em;
+      letter-spacing: 0;
       line-height: 1;
     }
 
@@ -1099,6 +1169,31 @@
         display: block;
         width: 100%;
         padding: 10px 12px;
+        min-height: 330px;
+        background:
+          linear-gradient(180deg, rgba(251, 247, 239, 0.96), rgba(251, 247, 239, 0.74)),
+          url("background-session-compass-square.png") center / cover;
+      }
+
+      .hero-content {
+        min-height: 306px;
+      }
+
+      .brand-logo {
+        width: 82px;
+        height: 82px;
+        border-radius: 18px;
+        margin-bottom: 10px;
+      }
+
+      .install-row {
+        align-items: stretch;
+      }
+
+      .install-button.available {
+        display: flex;
+        width: 100%;
+        justify-content: center;
       }
 
       .tabs {
@@ -1288,13 +1383,20 @@
 
   <main class="app-shell">
     <section class="hero">
-      <div class="eyebrow">Daily Practice</div>
-      <h1>Compass</h1>
-      <p>Daily Practice for Strength, Health &amp; Character</p>
-      <div class="hero-meta">
-        <div class="pill" id="heroDayPill">Day 1</div>
-        <div class="pill" id="heroModePill">Free choice off</div>
-        <div class="pill" id="heroProgressPill">0 sessions completed</div>
+      <div class="hero-content">
+        <img class="brand-logo" src="logo-compass.png" alt="Compass">
+        <div class="eyebrow">Daily Practice</div>
+        <h1>Compass</h1>
+        <p>Daily Practice for Strength, Health &amp; Character</p>
+        <div class="install-row">
+          <button class="install-button" id="installAppButton" type="button">Install Compass</button>
+          <span class="install-status" id="installStatus" aria-live="polite"></span>
+        </div>
+        <div class="hero-meta">
+          <div class="pill" id="heroDayPill">Day 1</div>
+          <div class="pill" id="heroModePill">Free choice off</div>
+          <div class="pill" id="heroProgressPill">0 sessions completed</div>
+        </div>
       </div>
     </section>
 
@@ -1315,6 +1417,7 @@
     const LS_FOCUS_DAY_KEY = "session_compass_focus_day_v2";
     const LS_FOCUS_TODAY_KEY = "session_compass_focus_today_v2";
     const APP_VERSION = 4;
+    let deferredInstallPrompt = null;
     const TABS = { TODAY: "today", OPTIONS: "options", CUSTOM: "custom" };
     const RECOVERY_FIELDS = [
       { key: "energy", label: "Energy" },
@@ -4388,6 +4491,74 @@
       }, 4200);
     }
 
+    function isStandaloneMode() {
+      return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+    }
+
+    function updateInstallUi(message) {
+      const button = document.getElementById("installAppButton");
+      const status = document.getElementById("installStatus");
+      if (!button || !status) {
+        return;
+      }
+
+      if (isStandaloneMode()) {
+        button.classList.remove("available");
+        status.textContent = "Compass is installed.";
+        return;
+      }
+
+      button.classList.toggle("available", Boolean(deferredInstallPrompt));
+      status.textContent = message || "";
+    }
+
+    function setupInstallPrompt() {
+      const button = document.getElementById("installAppButton");
+      if (!button) {
+        return;
+      }
+
+      window.addEventListener("beforeinstallprompt", (event) => {
+        event.preventDefault();
+        deferredInstallPrompt = event;
+        updateInstallUi("");
+      });
+
+      window.addEventListener("appinstalled", () => {
+        deferredInstallPrompt = null;
+        updateInstallUi("Compass is installed.");
+      });
+
+      button.addEventListener("click", async () => {
+        if (!deferredInstallPrompt) {
+          updateInstallUi("Use your browser menu to add Compass to your home screen.");
+          return;
+        }
+
+        deferredInstallPrompt.prompt();
+        const choice = await deferredInstallPrompt.userChoice;
+        deferredInstallPrompt = null;
+        updateInstallUi(choice.outcome === "accepted" ? "Compass is installing." : "");
+      });
+
+      updateInstallUi("");
+    }
+
+    function registerServiceWorker() {
+      if (!("serviceWorker" in navigator)) {
+        return;
+      }
+
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("service-worker.js").catch(() => {
+          const status = document.getElementById("installStatus");
+          if (status) {
+            status.textContent = "Offline mode could not be started.";
+          }
+        });
+      });
+    }
+
     document.querySelectorAll(".tab-button").forEach((button) => {
       button.addEventListener("click", () => {
         switchTab(button.getAttribute("data-tab"));
@@ -4417,6 +4588,8 @@
       }
     });
 
+    setupInstallPrompt();
+    registerServiceWorker();
     renderApp();
     switchTab(TABS.TODAY);
     startTimerLoop();
