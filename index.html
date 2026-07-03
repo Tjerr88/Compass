@@ -330,6 +330,22 @@
       max-width: 70ch;
     }
 
+    .reference-image {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow-soft);
+      background: #f7f1e4;
+    }
+
+    .reference-scroll {
+      max-height: min(72vh, 820px);
+      overflow: auto;
+      border-radius: 16px;
+    }
+
     .card-header {
       display: flex;
       align-items: flex-start;
@@ -1429,7 +1445,7 @@
     const LS_FOCUS_BAG_KEY = "session_compass_focus_bag_v2";
     const LS_FOCUS_DAY_KEY = "session_compass_focus_day_v2";
     const LS_FOCUS_TODAY_KEY = "session_compass_focus_today_v2";
-    const APP_VERSION = 6;
+    const APP_VERSION = 7;
     let deferredInstallPrompt = null;
     const TABS = { TODAY: "today", OPTIONS: "options", CUSTOM: "custom" };
     const RECOVERY_FIELDS = [
@@ -4144,6 +4160,17 @@
               <summary>Compass logic</summary>
               <div class="accordion-body">
                 <p class="subtle">Compass works by calendar day. No training log yesterday means Resistance Training today. If yesterday was Resistance Training, today becomes Zone 2 when no Zone 2 was logged in the last 7 days, otherwise HIIT when no HIIT was logged in the last 7 days, otherwise Active recovery. Training blocks alternate between 3 days and 2 days: after a 3-day block comes a recovery day, then after the next 2-day block comes a recovery day, then back to 3. Empty days count as real rest days and reset the block back to the 3-day version. The app also caps training at 5 logged training days in the last 7 calendar days.</p>
+              </div>
+            </details>
+          </article>
+
+          <article class="card soft">
+            <details class="accordion">
+              <summary>Stoic reference card</summary>
+              <div class="accordion-body">
+                <div class="reference-scroll">
+                  <img class="reference-image" src="stoic-card.png" alt="Stoic Living reference card">
+                </div>
               </div>
             </details>
           </article>

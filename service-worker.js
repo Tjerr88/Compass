@@ -1,4 +1,4 @@
-const CACHE_NAME = "compass-pwa-v3";
+const CACHE_NAME = "compass-pwa-v4";
 const APP_ASSETS = [
   "./",
   "./index.html",
@@ -7,6 +7,7 @@ const APP_ASSETS = [
   "./background-session-compass.png",
   "./background-session-compass-square.png",
   "./background-compass-map.png",
+  "./stoic-card.png",
   "./icon-192.png",
   "./icon-512.png",
   "./apple-touch-icon.png"
