@@ -1556,14 +1556,14 @@
       },
       specialized: {
         key: "specialized",
-        label: "Specialized",
-        summary: "One main lift gets extra attention, with all other patterns still covered.",
+        label: "Priority Hypertrophy",
+        summary: "Full-body hypertrophy with extra volume for today's main pattern.",
         mainGuidance: [
-          "Main lift: 3-6 sets van 6-12.",
-          "Wederpatroon: 2-3 sets van 6-12.",
-          "Ontbrekende patronen: 2 sets van 8-12.",
-          "Specialized variety: 2-3 sets van 8-12 in hetzelfde patroon, maar een andere subcategorie.",
-          "Tertiair: 2 sets van 10-15 voor het wederpatroon."
+          "Main Lift: 3-6 sets van 6-12.",
+          "Counter Pattern: 2-3 sets van 6-12.",
+          "Missing Patterns: 2 sets van 8-12.",
+          "Priority Variety: 2-3 sets van 8-12.",
+          "Tertiary: 2 sets van 10-15."
         ],
         mainPrescription: "3-6 sets van 6-12"
       }
@@ -2463,14 +2463,15 @@
       const mainGuidance = usingFemalePerformanceLens()
         ? [
             "All four main exercises: 4 sets van 4 reps.",
-            "Keep every rep sharp, powerful, and technically clean.",
+            "Use a heavy but crisp load. No grinders.",
+            "Stop if speed or technique drops.",
             "Nudge up only when all 4x4 sets stay crisp; nudge down when speed or technique drops."
           ]
         : trainingStyle.mainGuidance;
       if (usingSpecializedStyle()) {
         return {
-          title: "Specialized Resistance Training",
-          summary: "One main lift gets extra attention while all other patterns stay covered.",
+          title: "Priority Hypertrophy",
+          summary: "Full-body hypertrophy with extra volume for today's main pattern.",
           guidance: [
             ...mainGuidance,
             bandKey === "low"
@@ -2911,7 +2912,7 @@
         }));
       });
 
-      slots.push(makeSlot("specialized-variety", "specializedVariety", mainPattern, "Specialized Variety", {
+      slots.push(makeSlot("specialized-variety", "specializedVariety", mainPattern, "Priority Variety", {
         subcategory: specializedPair.variety,
         prescription: "2-3 sets van 8-12"
       }));
@@ -3610,7 +3611,7 @@
           },
           {
             id: "groupC",
-            title: "Specialized Superset",
+            title: "Priority Superset",
             subtitle: "Variety lift and tertiary work",
             slots: [findSlot("specializedVariety"), findSlot("tertiary")].filter(Boolean)
           }
@@ -4283,7 +4284,7 @@
             <div class="toggle-row">
               <div>
                 <h4>Female Performance Lens</h4>
-                <p class="subtle">Use Strength with all four main exercises at 4 sets of 4 reps.</p>
+                <p class="subtle">Use Strength as 4x4: heavy, clean, powerful reps for all four main exercises.</p>
               </div>
               <label class="switch" aria-label="Female Performance Lens on or off">
                 <input type="checkbox" id="femalePerformanceLensToggle" ${state.settings.strengthLens === "femalePerformance" ? "checked" : ""}>
