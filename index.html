@@ -1563,7 +1563,8 @@
           "Counter Pattern: 2-3 sets van 6-12.",
           "Missing Patterns: 2 sets van 8-12.",
           "Priority Variety: 2-3 sets van 8-12.",
-          "Tertiary: 2 sets van 10-15."
+          "Tertiary: 2 sets van 10-15.",
+          "Core: 2 sets van 10."
         ],
         mainPrescription: "3-6 sets van 6-12"
       }
@@ -1926,7 +1927,8 @@
         settings: {
           freeChoice: false,
           trainingStyle: "strength",
-          strengthLens: "standard"
+          strengthLens: "standard",
+          debugMultipleSessions: false
         },
         recoveryCheckins: {},
         rotations: {
@@ -1999,6 +2001,20 @@
     let activeTab = TABS.TODAY;
     let timerIntervalId = null;
     let wakeLock = null;
+    let debugSettingsUnlocked = false;
+    let debugUnlockTapCount = 0;
+
+    function unlockDebugSettings() {
+      debugUnlockTapCount += 1;
+      if (debugUnlockTapCount < 5) {
+        return;
+      }
+
+      debugSettingsUnlocked = true;
+      debugUnlockTapCount = 0;
+      renderApp();
+      switchTab(TABS.OPTIONS);
+    }
 
     function loadState() {
       try {
@@ -2918,6 +2934,9 @@
       }));
 
       slots.push(createTertiarySlot("specialized-tertiary", counterPattern, freeChoiceMode));
+      slots.push(makeSlot("specialized-core", "core", "core", "Core", {
+        prescription: "2 sets van 10"
+      }));
       return slots;
     }
 
@@ -3115,6 +3134,9 @@
     }
 
     function isTodayClosed() {
+      if (state.settings.debugMultipleSessions) {
+        return false;
+      }
       const lastItem = getLastLoggedItem();
       return !!(lastItem && getDateKeyFromValue(lastItem.completedAt) === getTodayKey());
     }
@@ -3611,9 +3633,9 @@
           },
           {
             id: "groupC",
-            title: "Priority Superset",
-            subtitle: "Variety lift and tertiary work",
-            slots: [findSlot("specializedVariety"), findSlot("tertiary")].filter(Boolean)
+            title: "Priority + Core",
+            subtitle: "Variety lift, tertiary work, and core",
+            slots: [findSlot("specializedVariety"), findSlot("tertiary"), findSlot("core")].filter(Boolean)
           }
         ].filter((group) => group.slots.length);
 
@@ -4294,13 +4316,29 @@
           </div>
         `
         : "";
+      const debugSettingsMarkup = debugSettingsUnlocked || state.settings.debugMultipleSessions
+        ? `
+          <div class="mini-card" style="margin-top: 14px;">
+            <div class="toggle-row">
+              <div>
+                <h4>Debug testing</h4>
+                <p class="subtle">Allow multiple sessions on the same calendar day. For QA only.</p>
+              </div>
+              <label class="switch" aria-label="Debug multiple sessions on or off">
+                <input type="checkbox" id="debugMultipleSessionsToggle" ${state.settings.debugMultipleSessions ? "checked" : ""}>
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+        `
+        : "";
 
       view.innerHTML = `
         <div class="stack">
           <article class="card">
             <div class="card-header">
               <div>
-                <h2>Options</h2>
+                <h2 id="optionsTitle">Options</h2>
                 <p class="subtle">Settings and history.</p>
               </div>
             </div>
@@ -4322,6 +4360,7 @@
                 ${trainingStyleCards}
               </div>
               ${strengthLensMarkup}
+              ${debugSettingsMarkup}
             </div>
             <div class="button-row">
               <button class="ghost-button" type="button" id="resetButton">Reset all</button>
@@ -4371,6 +4410,8 @@
         </div>
       `;
 
+      document.getElementById("optionsTitle").addEventListener("click", unlockDebugSettings);
+
       document.getElementById("freeChoiceToggle").addEventListener("change", (event) => {
         state.settings.freeChoice = event.target.checked;
         saveState();
@@ -4391,6 +4432,16 @@
       if (femalePerformanceLensToggle) {
         femalePerformanceLensToggle.addEventListener("change", (event) => {
           state.settings.strengthLens = event.target.checked ? "femalePerformance" : "standard";
+          saveState();
+          renderApp();
+          switchTab(TABS.OPTIONS);
+        });
+      }
+
+      const debugMultipleSessionsToggle = document.getElementById("debugMultipleSessionsToggle");
+      if (debugMultipleSessionsToggle) {
+        debugMultipleSessionsToggle.addEventListener("change", (event) => {
+          state.settings.debugMultipleSessions = event.target.checked;
           saveState();
           renderApp();
           switchTab(TABS.OPTIONS);
@@ -4711,7 +4762,11 @@
 
     document.querySelectorAll(".tab-button").forEach((button) => {
       button.addEventListener("click", () => {
-        switchTab(button.getAttribute("data-tab"));
+        const targetTab = button.getAttribute("data-tab");
+        if (targetTab === TABS.OPTIONS) {
+          unlockDebugSettings();
+        }
+        switchTab(targetTab);
       });
     });
 
