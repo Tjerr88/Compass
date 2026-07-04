@@ -1445,7 +1445,7 @@
     const LS_FOCUS_BAG_KEY = "session_compass_focus_bag_v2";
     const LS_FOCUS_DAY_KEY = "session_compass_focus_day_v2";
     const LS_FOCUS_TODAY_KEY = "session_compass_focus_today_v2";
-    const APP_VERSION = 7;
+    const APP_VERSION = 8;
     let deferredInstallPrompt = null;
     const TABS = { TODAY: "today", OPTIONS: "options", CUSTOM: "custom" };
     const RECOVERY_FIELDS = [
@@ -1473,6 +1473,19 @@
       ["pull", "squat", "push", "hinge"],
       ["hinge", "push", "squat", "pull"]
     ];
+    const MAIN_PATTERNS = ["squat", "pull", "hinge", "push"];
+    const COUNTER_PATTERN = {
+      squat: "pull",
+      pull: "squat",
+      hinge: "push",
+      push: "hinge"
+    };
+    const TERTIARY_BY_PATTERN = {
+      pull: "Bayesian Curl",
+      push: "Overhead Tricep Extension",
+      squat: "Calf Raise",
+      hinge: "Lateral Raise"
+    };
 
     const GROUP_REST_OPTIONS = [60, 75, 90];
     const TRAINING_STYLE_OPTIONS = {
@@ -1540,6 +1553,19 @@
           "Haal je minder dan 8, nudge omlaag. Haal je meer dan 12, nudge omhoog."
         ],
         mainPrescription: "10 @ 50%, 10 @ 75%, laatste set 8-12 @ 100% effort"
+      },
+      specialized: {
+        key: "specialized",
+        label: "Specialized",
+        summary: "One main lift gets extra attention, with all other patterns still covered.",
+        mainGuidance: [
+          "Main lift: 3-6 sets van 6-12.",
+          "Wederpatroon: 2-3 sets van 6-12.",
+          "Ontbrekende patronen: 2 sets van 8-12.",
+          "Specialized variety: 2-3 sets van 8-12 in hetzelfde patroon, maar een andere subcategorie.",
+          "Tertiair: 2 sets van 10-15 voor het wederpatroon."
+        ],
+        mainPrescription: "3-6 sets van 6-12"
       }
     };
 
@@ -1899,7 +1925,8 @@
         trainingSessionsCompleted: 0,
         settings: {
           freeChoice: false,
-          trainingStyle: "strength"
+          trainingStyle: "strength",
+          strengthLens: "standard"
         },
         recoveryCheckins: {},
         rotations: {
@@ -2236,8 +2263,22 @@
       return TRAINING_STYLE_OPTIONS[state.settings.trainingStyle] || TRAINING_STYLE_OPTIONS.strength;
     }
 
+    function usingSpecializedStyle() {
+      return getTrainingStyle().key === "specialized";
+    }
+
+    function usingFemalePerformanceLens() {
+      return getTrainingStyle().key === "strength" && state.settings.strengthLens === "femalePerformance";
+    }
+
     function getSlotPrescription(slot) {
+      if (slot.prescription) {
+        return slot.prescription;
+      }
       if (slot.slotType === "main") {
+        if (usingFemalePerformanceLens()) {
+          return "4 sets van 4 reps";
+        }
         return getTrainingStyle().mainPrescription;
       }
       if (slot.patternKey === "core") {
@@ -2419,13 +2460,32 @@
 
     function getStrengthDose(bandKey) {
       const trainingStyle = getTrainingStyle();
+      const mainGuidance = usingFemalePerformanceLens()
+        ? [
+            "All four main exercises: 4 sets van 4 reps.",
+            "Keep every rep sharp, powerful, and technically clean.",
+            "Nudge up only when all 4x4 sets stay crisp; nudge down when speed or technique drops."
+          ]
+        : trainingStyle.mainGuidance;
+      if (usingSpecializedStyle()) {
+        return {
+          title: "Specialized Resistance Training",
+          summary: "One main lift gets extra attention while all other patterns stay covered.",
+          guidance: [
+            ...mainGuidance,
+            bandKey === "low"
+              ? "Low recovery: keep every slot clean and stop with more reps in reserve."
+              : "Use the recovery score to choose how close to the top of each set range you go."
+          ]
+        };
+      }
       if (bandKey === "low") {
         return {
           title: "Resistance Training",
           summary: "Today includes only Main A and Main B.",
           guidance: [
             "Main A and Main B.",
-            ...trainingStyle.mainGuidance,
+            ...mainGuidance,
             "RIR 4. Ruim stoppen voor traagheid of techniekverlies.",
             "No core and no secondary."
           ]
@@ -2437,7 +2497,7 @@
           summary: "Today includes Main A and Main B, with core work at the end.",
           guidance: [
             (trainingStyle.coreGuidance || "Core at the end: 2 sets of 10-12."),
-            ...trainingStyle.mainGuidance,
+            ...mainGuidance,
             "No secondary."
           ]
         };
@@ -2446,7 +2506,7 @@
         title: "Resistance Training",
         summary: "Today includes Main A and Main B, with core and secondary work at the end.",
         guidance: [
-          ...trainingStyle.mainGuidance,
+          ...mainGuidance,
           (trainingStyle.supportGuidance || "Core and secondary both come at the end."),
           (trainingStyle.buildGuidance || "Build day: take volume if quality stays high.")
         ]
@@ -2647,6 +2707,20 @@
       return subcategory;
     }
 
+    function getNextDifferentSubcategory(patternKey, excludedSubcategory) {
+      const pattern = PROGRAM[patternKey];
+      const list = pattern.subcategories || [];
+      if (list.length <= 1) {
+        return excludedSubcategory || list[0] || "";
+      }
+
+      let subcategory = getNextSubcategory(patternKey);
+      if (subcategory === excludedSubcategory) {
+        subcategory = getNextSubcategory(patternKey);
+      }
+      return subcategory;
+    }
+
     function getNextExercise(patternKey, subcategory) {
       const options = usingMachinesStyle()
         ? getMachinesRotationOptions(patternKey, subcategory)
@@ -2698,10 +2772,10 @@
       return "Last time: " + lastValue;
     }
 
-    function createAutoSlot(id, slotType, patternKey, titleOverride) {
+    function createAutoSlot(id, slotType, patternKey, titleOverride, slotOptions = {}) {
       const pattern = PROGRAM[patternKey];
-      const subcategory = getNextSubcategory(patternKey);
-      const exercise = getNextExercise(patternKey, subcategory);
+      const subcategory = slotOptions.subcategory || getNextSubcategory(patternKey);
+      const exercise = slotOptions.exercise || getNextExercise(patternKey, subcategory);
       const record = getExerciseRecord(exercise);
       const previousText = buildPreviousText(record.lastValue, record.pendingNudge);
       const inputValue = record.lastValue || "";
@@ -2715,15 +2789,16 @@
         previousText,
         inputValue,
         nudgeChoice: null,
-        setsDone: 0
+        setsDone: 0,
+        prescription: slotOptions.prescription || ""
       };
       record.pendingNudge = null;
       return slot;
     }
 
-    function createFreeChoiceSlot(id, slotType, patternKey, titleOverride) {
+    function createFreeChoiceSlot(id, slotType, patternKey, titleOverride, slotOptions = {}) {
       const pattern = PROGRAM[patternKey];
-      const subcategory = patternKey === "secondary" ? "Secondary" : getNextSubcategory(patternKey);
+      const subcategory = slotOptions.subcategory || (patternKey === "secondary" ? "Secondary" : getNextSubcategory(patternKey));
       return {
         id,
         slotType,
@@ -2734,7 +2809,8 @@
         previousText: "",
         inputValue: "",
         nudgeChoice: null,
-        setsDone: 0
+        setsDone: 0,
+        prescription: slotOptions.prescription || ""
       };
     }
 
@@ -2754,7 +2830,36 @@
         previousText: buildPreviousText(record.lastValue, record.pendingNudge),
         inputValue: record.lastValue || "",
         nudgeChoice: null,
-        setsDone: 0
+        setsDone: 0,
+        prescription: ""
+      };
+      record.pendingNudge = null;
+      return slot;
+    }
+
+    function createTertiarySlot(id, counterPattern, freeChoiceMode) {
+      const label = "Tertiair " + PROGRAM[counterPattern].label;
+      const exercise = TERTIARY_BY_PATTERN[counterPattern] || getNextSecondaryExercise();
+      if (freeChoiceMode) {
+        return createFreeChoiceSlot(id, "tertiary", "secondary", label, {
+          subcategory: "Secondary",
+          prescription: "2 sets van 10-15"
+        });
+      }
+
+      const record = getExerciseRecord(exercise);
+      const slot = {
+        id,
+        slotType: "tertiary",
+        patternKey: "secondary",
+        label,
+        subcategory: "Secondary",
+        exercise,
+        previousText: buildPreviousText(record.lastValue, record.pendingNudge),
+        inputValue: record.lastValue || "",
+        nudgeChoice: null,
+        setsDone: 0,
+        prescription: "2 sets van 10-15"
       };
       record.pendingNudge = null;
       return slot;
@@ -2764,6 +2869,55 @@
       const order = MAIN_ORDERS[state.rotations.mainOrderIndex % MAIN_ORDERS.length];
       state.rotations.mainOrderIndex += 1;
       return order;
+    }
+
+    function getSpecializedSubcategoryPair(patternKey) {
+      const list = (PROGRAM[patternKey] && PROGRAM[patternKey].subcategories) || [];
+      if (!list.length) {
+        return { main: "", variety: "" };
+      }
+
+      const key = "specialized::" + patternKey;
+      const currentIndex = state.rotations.subcategories[key] || 0;
+      const main = list[currentIndex % list.length];
+      const variety = list.length > 1
+        ? list[(currentIndex + 1) % list.length]
+        : main;
+      state.rotations.subcategories[key] = currentIndex + 2;
+      return { main, variety };
+    }
+
+    function createSpecializedWorkoutSlots(mainOrder, freeChoiceMode) {
+      const mainPattern = mainOrder[0];
+      const counterPattern = COUNTER_PATTERN[mainPattern] || mainOrder[1];
+      const missingPatterns = MAIN_PATTERNS.filter((patternKey) => patternKey !== mainPattern && patternKey !== counterPattern);
+      const slots = [];
+      const makeSlot = freeChoiceMode ? createFreeChoiceSlot : createAutoSlot;
+      const specializedPair = getSpecializedSubcategoryPair(mainPattern);
+
+      const mainSlot = makeSlot("specialized-main", "mainLift", mainPattern, "Main Lift", {
+        subcategory: specializedPair.main,
+        prescription: "3-6 sets van 6-12"
+      });
+      slots.push(mainSlot);
+
+      slots.push(makeSlot("specialized-counter", "counter", counterPattern, "Wederpatroon", {
+        prescription: "2-3 sets van 6-12"
+      }));
+
+      missingPatterns.forEach((patternKey, index) => {
+        slots.push(makeSlot("specialized-missing-" + index, "missing", patternKey, "Ontbrekend: " + PROGRAM[patternKey].label, {
+          prescription: "2 sets van 8-12"
+        }));
+      });
+
+      slots.push(makeSlot("specialized-variety", "specializedVariety", mainPattern, "Specialized Variety", {
+        subcategory: specializedPair.variety,
+        prescription: "2-3 sets van 8-12"
+      }));
+
+      slots.push(createTertiarySlot("specialized-tertiary", counterPattern, freeChoiceMode));
+      return slots;
     }
 
     function ensureCurrentWorkout(plan) {
@@ -2779,6 +2933,21 @@
       const rotationSnapshot = cloneRotations(state.rotations);
       const mainOrder = rotateMainOrder();
       const slots = [];
+
+      if (usingSpecializedStyle()) {
+        state.currentWorkout = {
+          id: "workout-" + Date.now(),
+          planDate: plan.dateKey,
+          generatedAt: new Date().toISOString(),
+          freeChoiceMode,
+          rotationSnapshot,
+          order: mainOrder,
+          layout: "specialized",
+          slots: createSpecializedWorkoutSlots(mainOrder, freeChoiceMode)
+        };
+        saveState();
+        return;
+      }
 
       if (freeChoiceMode) {
         slots.push(createFreeChoiceSlot("core", "core", "core", "Core"));
@@ -3423,6 +3592,37 @@
     }
 
     function renderTrainingGroups(workout, plan) {
+      if (workout.layout === "specialized") {
+        const findSlot = (slotType) => workout.slots.find((slot) => slot.slotType === slotType);
+        const missingSlots = workout.slots.filter((slot) => slot.slotType === "missing");
+        const groups = [
+          {
+            id: "groupA",
+            title: "Main Superset",
+            subtitle: "Main lift and counter pattern",
+            slots: [findSlot("mainLift"), findSlot("counter")].filter(Boolean)
+          },
+          {
+            id: "groupB",
+            title: "Missing Pattern Superset",
+            subtitle: "Both remaining patterns",
+            slots: missingSlots
+          },
+          {
+            id: "groupC",
+            title: "Specialized Superset",
+            subtitle: "Variety lift and tertiary work",
+            slots: [findSlot("specializedVariety"), findSlot("tertiary")].filter(Boolean)
+          }
+        ].filter((group) => group.slots.length);
+
+        return `
+          <div class="group-grid">
+            ${groups.map((group) => renderExerciseGroup(group, workout.freeChoiceMode)).join("")}
+          </div>
+        `;
+      }
+
       const coreSlot = workout.slots.find((slot) => slot.slotType === "core");
       const mainSlots = workout.slots.filter((slot) => slot.slotType === "main");
       const secondarySlot = workout.slots.find((slot) => slot.slotType === "secondary");
@@ -4033,51 +4233,6 @@
 
     function renderOptions() {
       const view = document.getElementById("optionsView");
-      const nextOrder = MAIN_ORDERS[state.rotations.mainOrderIndex % MAIN_ORDERS.length]
-        .map((patternKey) => PROGRAM[patternKey].label)
-        .join(" -> ");
-
-      const rotationCards = ["core", "squat", "push", "pull", "hinge"].map((patternKey) => {
-        const pattern = PROGRAM[patternKey];
-        const nextSubcategory = pattern.subcategories[state.rotations.subcategories[patternKey] % pattern.subcategories.length];
-        const nextExercise = state.settings.freeChoice
-          ? "Hidden in free choice"
-          : previewNextExercise(patternKey, nextSubcategory);
-
-        return `
-          <div class="mini-card">
-            <h4>${escapeHtml(pattern.label)}</h4>
-            <ul class="detail-list">
-              <li><strong>Next subcategory:</strong> ${escapeHtml(nextSubcategory)}</li>
-              <li><strong>Next exercise:</strong> ${escapeHtml(nextExercise)}</li>
-            </ul>
-          </div>
-        `;
-      }).join("");
-
-      const libraryCards = ["core", "squat", "push", "pull", "hinge"].map((patternKey) => {
-        const pattern = PROGRAM[patternKey];
-        const subList = pattern.subcategories.map((subcategory) => {
-          const exercises = (pattern.exercises[subcategory] || []).join(", ");
-          return `<li><strong>${escapeHtml(subcategory)}:</strong> ${escapeHtml(exercises)}</li>`;
-        }).join("");
-        return `
-          <div class="mini-card">
-            <h4>${escapeHtml(pattern.label)}</h4>
-            <ul class="detail-list">${subList}</ul>
-          </div>
-        `;
-      }).join("");
-
-      const secondaryCard = `
-        <div class="mini-card">
-          <h4>Secondary</h4>
-          <ul class="detail-list">
-            ${PROGRAM.secondary.exercises.map((exercise) => `<li>${escapeHtml(exercise)}</li>`).join("")}
-          </ul>
-        </div>
-      `;
-
       const historyItems = state.history.length
         ? state.history.slice(0, 12).map((item) => {
             const summary = item.type === "training"
@@ -4122,6 +4277,22 @@
           </div>
         </label>
       `).join("");
+      const strengthLensMarkup = state.settings.trainingStyle === "strength"
+        ? `
+          <div class="mini-card" style="margin-top: 14px;">
+            <div class="toggle-row">
+              <div>
+                <h4>Female Performance Lens</h4>
+                <p class="subtle">Use Strength with all four main exercises at 4 sets of 4 reps.</p>
+              </div>
+              <label class="switch" aria-label="Female Performance Lens on or off">
+                <input type="checkbox" id="femalePerformanceLensToggle" ${state.settings.strengthLens === "femalePerformance" ? "checked" : ""}>
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+        `
+        : "";
 
       view.innerHTML = `
         <div class="stack">
@@ -4149,6 +4320,7 @@
               <div class="library-grid" style="margin-top: 12px;">
                 ${trainingStyleCards}
               </div>
+              ${strengthLensMarkup}
             </div>
             <div class="button-row">
               <button class="ghost-button" type="button" id="resetButton">Reset all</button>
@@ -4160,51 +4332,6 @@
               <summary>Compass logic</summary>
               <div class="accordion-body">
                 <p class="subtle">Compass works by calendar day. No training log yesterday means Resistance Training today. If yesterday was Resistance Training, today becomes Zone 2 when no Zone 2 was logged in the last 7 days, otherwise HIIT when no HIIT was logged in the last 7 days, otherwise Active recovery. Training blocks alternate between 3 days and 2 days: after a 3-day block comes a recovery day, then after the next 2-day block comes a recovery day, then back to 3. Empty days count as real rest days and reset the block back to the 3-day version. The app also caps training at 5 logged training days in the last 7 calendar days.</p>
-              </div>
-            </details>
-          </article>
-
-          <article class="card soft">
-            <details class="accordion">
-              <summary>Stoic reference card</summary>
-              <div class="accordion-body">
-                <div class="reference-scroll">
-                  <img class="reference-image" src="stoic-card.png" alt="Stoic Living reference card">
-                </div>
-              </div>
-            </details>
-          </article>
-
-          <article class="card soft">
-            <details class="accordion">
-              <summary>Next main rotation</summary>
-              <div class="accordion-body">
-                <p class="subtle">${escapeHtml(nextOrder)}</p>
-              </div>
-            </details>
-          </article>
-
-          <article class="card soft">
-            <details class="accordion">
-              <summary>Exercise rotation</summary>
-              <div class="accordion-body">
-                <p class="subtle">The structure stays the same; Compass only rotates through content and subcategories.</p>
-                <div class="library-grid" style="margin-top: 12px;">
-                  ${rotationCards}
-                </div>
-              </div>
-            </details>
-          </article>
-
-          <article class="card soft">
-            <details class="accordion">
-              <summary>Exercise overview</summary>
-              <div class="accordion-body">
-                <p class="subtle">All main patterns, subcategories, and exercises in one place.</p>
-                <div class="library-grid" style="margin-top: 12px;">
-                  ${libraryCards}
-                  ${secondaryCard}
-                </div>
               </div>
             </details>
           </article>
@@ -4229,6 +4356,17 @@
               ${historyItems}
             </div>
           </article>
+
+          <article class="card soft">
+            <details class="accordion">
+              <summary>Stoic reference card</summary>
+              <div class="accordion-body">
+                <div class="reference-scroll">
+                  <img class="reference-image" src="stoic-card.png" alt="Stoic Living reference card">
+                </div>
+              </div>
+            </details>
+          </article>
         </div>
       `;
 
@@ -4247,6 +4385,16 @@
           switchTab(TABS.OPTIONS);
         });
       });
+
+      const femalePerformanceLensToggle = document.getElementById("femalePerformanceLensToggle");
+      if (femalePerformanceLensToggle) {
+        femalePerformanceLensToggle.addEventListener("change", (event) => {
+          state.settings.strengthLens = event.target.checked ? "femalePerformance" : "standard";
+          saveState();
+          renderApp();
+          switchTab(TABS.OPTIONS);
+        });
+      }
 
       document.getElementById("resetButton").addEventListener("click", handleReset);
     }
