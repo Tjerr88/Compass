@@ -6,7 +6,7 @@
   <title>Compass</title>
   <meta name="theme-color" content="#384437">
   <meta name="description" content="Compass - daily practice for strength, health and character.">
-  <meta name="compass-build" content="2026-07-04-debug-auto-off-1">
+  <meta name="compass-build" content="2026-07-07-english-polish-1">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Compass">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -399,16 +399,17 @@
 
     .group-grid {
       display: grid;
-      gap: 16px;
+      gap: 14px;
     }
 
     .exercise-group {
       display: grid;
-      gap: 14px;
+      gap: 12px;
       padding: 16px;
-      border: 1px solid rgba(115, 91, 58, 0.13);
+      border: 1px solid var(--line);
       border-radius: 22px;
-      background: rgba(249, 243, 233, 0.64);
+      background: linear-gradient(180deg, rgba(253,250,245,0.98), rgba(242,235,223,0.96));
+      box-shadow: 0 10px 24px rgba(67, 52, 31, 0.06);
     }
 
     .group-heading {
@@ -425,8 +426,39 @@
 
     .group-slots {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 14px;
+      gap: 0;
+    }
+
+    .exercise-row {
+      display: grid;
+      gap: 9px;
+      padding: 13px 0;
+      border-top: 1px solid rgba(115, 91, 58, 0.13);
+    }
+
+    .exercise-row:first-child {
+      border-top: 0;
+      padding-top: 2px;
+    }
+
+    .exercise-row:last-child {
+      padding-bottom: 0;
+    }
+
+    .exercise-main-line,
+    .exercise-entry-line {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto auto;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .exercise-entry-line {
+      grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    .exercise-copy {
+      min-width: 0;
     }
 
     .slot-card {
@@ -513,6 +545,41 @@
 
     .slot-meta-row .video-link {
       flex: 0 0 auto;
+    }
+
+    .inline-prescription {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .compact-set-stepper {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255, 251, 244, 0.82);
+      white-space: nowrap;
+    }
+
+    .compact-stepper-button,
+    .compact-count {
+      width: 34px;
+      height: 34px;
+      min-height: 34px;
+      padding: 0;
+      border-radius: 10px;
+      font-weight: 900;
+    }
+
+    .compact-count {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary-strong);
     }
 
     .video-modal {
@@ -621,7 +688,8 @@
       font-weight: 600;
     }
 
-    input[type="text"] {
+    input[type="text"],
+    select {
       width: 100%;
       border: 1px solid var(--line-strong);
       border-radius: 14px;
@@ -633,9 +701,14 @@
       transition: border-color var(--transition), box-shadow var(--transition);
     }
 
-    input[type="text"]:focus {
+    input[type="text"]:focus,
+    select:focus {
       border-color: rgba(85, 98, 74, 0.42);
       box-shadow: 0 0 0 4px rgba(85, 98, 74, 0.08);
+    }
+
+    select {
+      cursor: pointer;
     }
 
     textarea {
@@ -1134,6 +1207,30 @@
       margin-top: 12px;
     }
 
+    .sticky-rest {
+      position: sticky;
+      bottom: 12px;
+      z-index: 12;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 16px;
+      padding: 10px;
+      border: 1px solid rgba(85, 98, 74, 0.18);
+      border-radius: 18px;
+      background: rgba(253, 250, 245, 0.94);
+      box-shadow: 0 18px 34px rgba(67, 52, 31, 0.16);
+      backdrop-filter: blur(12px);
+    }
+
+    .sticky-rest .primary-button {
+      flex: 1 1 auto;
+    }
+
+    .sticky-rest .secondary-button {
+      flex: 0 0 auto;
+    }
+
     .hiit-panel {
       display: grid;
       gap: 16px;
@@ -1286,9 +1383,27 @@
         gap: 10px;
       }
 
-      .group-slots,
       .hiit-controls {
         grid-template-columns: 1fr;
+      }
+
+      .exercise-group {
+        border-radius: 18px;
+        padding: 14px;
+      }
+
+      .exercise-main-line,
+      .exercise-entry-line {
+        grid-template-columns: 1fr;
+      }
+
+      .exercise-main-line .video-link {
+        width: 100%;
+      }
+
+      .compact-set-stepper {
+        width: 100%;
+        justify-content: space-between;
       }
 
       .slot-card {
@@ -1336,6 +1451,7 @@
       }
 
       input[type="text"],
+      select,
       textarea {
         border-radius: 12px;
         padding: 12px 13px;
@@ -1378,6 +1494,21 @@
         border-radius: 14px;
         padding: 12px 14px;
         font-size: 0.94rem;
+      }
+
+      .compact-stepper-button {
+        width: 34px;
+        min-height: 34px;
+        padding: 0;
+      }
+
+      .sticky-rest .primary-button {
+        width: auto;
+      }
+
+      .sticky-rest .secondary-button {
+        width: auto;
+        min-height: 46px;
       }
 
       .nudge-button {
@@ -1446,7 +1577,7 @@
     const LS_FOCUS_BAG_KEY = "session_compass_focus_bag_v2";
     const LS_FOCUS_DAY_KEY = "session_compass_focus_day_v2";
     const LS_FOCUS_TODAY_KEY = "session_compass_focus_today_v2";
-    const APP_VERSION = 10;
+    const APP_VERSION = 13;
     let deferredInstallPrompt = null;
     const TABS = { TODAY: "today", OPTIONS: "options", CUSTOM: "custom" };
     const RECOVERY_FIELDS = [
@@ -1489,6 +1620,7 @@
     };
 
     const GROUP_REST_OPTIONS = [60, 75, 90];
+    const REST_DURATION_OPTIONS = [60, 75, 90, 120];
     const TRAINING_STYLE_OPTIONS = {
       strength: {
         key: "strength",
@@ -1499,7 +1631,7 @@
           "Keep reps heavy, clean, and controlled.",
           "Nudge up when the top of the range is clearly there; nudge down when speed or technique drops."
         ],
-        mainPrescription: "2-5 sets van 1-5 reps"
+        mainPrescription: "2-5 sets of 1-5 reps"
       },
       hypertrophy: {
         key: "hypertrophy",
@@ -1511,7 +1643,7 @@
           "After set 3, keep adding sets while each set stays in the 6-12 rep range, up to 6 sets total.",
           "Stop that lift when a set drops below 6 reps. If you can complete 6 sets of 12, the load is too light."
         ],
-        mainPrescription: "Max effort: 3-6 sets van 6-12 reps",
+        mainPrescription: "Max effort: 3-6 sets of 6-12 reps",
         buildGuidance: "Build day: apply max effort per main lift. Add sets after the minimum while reps stay in range."
       },
       med: {
@@ -1519,55 +1651,55 @@
         label: "MED",
         summary: "Minimal Effective Dose: just enough hard work to move forward.",
         mainGuidance: [
-          "Main lifts: 2-3 sets van 8-12.",
-          "RIR 0-2: hard, maar technisch strak."
+          "Main lifts: 2-3 sets of 8-12.",
+          "RIR 0-2: hard, but technically clean."
         ],
-        mainPrescription: "2-3 sets van 8-12 met 0-2 RIR",
-        corePrescription: "1-2 sets van 10-15 met 0-2 RIR",
-        secondaryPrescription: "1-2 sets van 10-15 met 0-2 RIR",
-        coreGuidance: "Buik: 1-2 sets van 10-15 met 0-2 RIR.",
-        supportGuidance: "Buik en secundair: 1-2 sets van 10-15 met 0-2 RIR."
+        mainPrescription: "2-3 sets of 8-12 with 0-2 RIR",
+        corePrescription: "1-2 sets of 10-15 with 0-2 RIR",
+        secondaryPrescription: "1-2 sets of 10-15 with 0-2 RIR",
+        coreGuidance: "Core: 1-2 sets of 10-15 with 0-2 RIR.",
+        supportGuidance: "Core and secondary: 1-2 sets of 10-15 with 0-2 RIR."
       },
       machines: {
         key: "machines",
         label: "Machines",
         summary: "Machine-based MED with fixed exercise choices.",
         mainGuidance: [
-          "Compound oefeningen: 2-3 sets van 8-12.",
-          "Secundaire oefeningen: 2 sets van 10-15.",
-          "RIR 0-2: hard, maar technisch strak."
+          "Compound exercises: 2-3 sets of 8-12.",
+          "Secondary exercises: 2 sets of 10-15.",
+          "RIR 0-2: hard, but technically clean."
         ],
-        mainPrescription: "2-3 sets van 8-12 met 0-2 RIR",
-        corePrescription: "2 sets van 10-15 met 0-2 RIR",
-        secondaryPrescription: "2 sets van 10-15 met 0-2 RIR",
-        coreGuidance: "Buik: 2 sets van 10-15 met 0-2 RIR.",
-        supportGuidance: "Buik en secundair: 2 sets van 10-15 met 0-2 RIR."
+        mainPrescription: "2-3 sets of 8-12 with 0-2 RIR",
+        corePrescription: "2 sets of 10-15 with 0-2 RIR",
+        secondaryPrescription: "2 sets of 10-15 with 0-2 RIR",
+        coreGuidance: "Core: 2 sets of 10-15 with 0-2 RIR.",
+        supportGuidance: "Core and secondary: 2 sets of 10-15 with 0-2 RIR."
       },
       delorme: {
         key: "delorme",
         label: "Delorme",
         summary: "Progressive loading: 50%, 75%, then one hard effort set.",
         mainGuidance: [
-          "Set 1: 10 reps op 50%.",
-          "Set 2: 10 reps op 75%.",
-          "Set 3: 8-12 reps op 100% effort.",
-          "Haal je minder dan 8, nudge omlaag. Haal je meer dan 12, nudge omhoog."
+          "Set 1: 10 reps at 50%.",
+          "Set 2: 10 reps at 75%.",
+          "Set 3: 8-12 reps at 100% effort.",
+          "If you get fewer than 8, nudge down. If you get more than 12, nudge up."
         ],
-        mainPrescription: "10 @ 50%, 10 @ 75%, laatste set 8-12 @ 100% effort"
+        mainPrescription: "10 @ 50%, 10 @ 75%, final set 8-12 @ 100% effort"
       },
       specialized: {
         key: "specialized",
         label: "Priority Hypertrophy",
         summary: "Full-body hypertrophy with extra volume for today's main pattern.",
         mainGuidance: [
-          "Main Lift: 3-6 sets van 6-12.",
-          "Counter Pattern: 2-3 sets van 6-12.",
-          "Missing Patterns: 2 sets van 8-12.",
-          "Priority Variety: 2-3 sets van 8-12.",
-          "Tertiary: 2 sets van 10-15.",
-          "Core: 2 sets van 10."
+          "Main Lift: 3-6 sets of 6-12.",
+          "Counter Pattern: 2-3 sets of 6-12.",
+          "Missing Patterns: 2 sets of 8-12.",
+          "Priority Variety: 2-3 sets of 8-12.",
+          "Tertiary: 2 sets of 10-15.",
+          "Core: 2 sets of 10."
         ],
-        mainPrescription: "3-6 sets van 6-12"
+        mainPrescription: "3-6 sets of 6-12"
       }
     };
 
@@ -1630,49 +1762,49 @@
       core: {
         label: "Core",
         subcategories: [
-          "Anti-extensie",
+          "Anti-extension",
           "Anti-lateral bending",
-          "Anti-rotatie",
+          "Anti-rotation",
           "Hip Flexion Stable Spine",
-          "Rotatie"
+          "Rotation"
         ],
         exercises: {
-          "Anti-extensie": ["Cable Crunch", "Ab Wheel", "Deadbug"],
+          "Anti-extension": ["Cable Crunch", "Ab Wheel", "Deadbug"],
           "Anti-lateral bending": ["Suitcase Carry", "Side Plank"],
-          "Anti-rotatie": ["Pallof Press", "Chop", "Lift"],
+          "Anti-rotation": ["Pallof Press", "Chop", "Lift"],
           "Hip Flexion Stable Spine": ["Leg Raise", "Knee Raise"],
-          "Rotatie": ["Woodchopper", "Landmine Rotation"]
+          "Rotation": ["Woodchopper", "Landmine Rotation"]
         }
       },
       squat: {
         label: "Squat",
         subcategories: [
-          "Symmetrische squat",
-          "Asymmetrische squat",
+          "Symmetrical squat",
+          "Asymmetrical squat",
           "Single leg squat"
         ],
         exercises: {
-          "Symmetrische squat": ["Front Squat", "Back Squat", "Leg Press"],
-          "Asymmetrische squat": ["Lunge", "Bulgarian Split Squat", "Side Lunge"],
+          "Symmetrical squat": ["Front Squat", "Back Squat", "Leg Press"],
+          "Asymmetrical squat": ["Lunge", "Bulgarian Split Squat", "Side Lunge"],
           "Single leg squat": ["Box Pistol", "Step Up", "Skater Squat"]
         }
       },
       hinge: {
         label: "Hinge",
         subcategories: [
-          "Anterior-posterior asymmetrisch",
+          "Anterior-posterior asymmetrical",
           "Axial single leg",
-          "Anterior-posterior symmetrisch",
-          "Axial asymmetrisch",
+          "Anterior-posterior symmetrical",
+          "Axial asymmetrical",
           "Anterior-posterior single leg",
-          "Axial symmetrisch"
+          "Axial symmetrical"
         ],
         exercises: {
-          "Axial symmetrisch": ["Conventional Deadlift", "Romanian Deadlift", "Trapbar Deadlift"],
-          "Anterior-posterior asymmetrisch": ["B-Stance Hip Thrust", "B-Stance Glute Bridge"],
+          "Axial symmetrical": ["Conventional Deadlift", "Romanian Deadlift", "Trapbar Deadlift"],
+          "Anterior-posterior asymmetrical": ["B-Stance Hip Thrust", "B-Stance Glute Bridge"],
           "Axial single leg": ["Single Leg Deadlift", "Single Leg Good Morning"],
-          "Anterior-posterior symmetrisch": ["Hip Thrust", "Glute Bridge"],
-          "Axial asymmetrisch": ["B-Stance Deadlift", "B-Stance Good Morning"],
+          "Anterior-posterior symmetrical": ["Hip Thrust", "Glute Bridge"],
+          "Axial asymmetrical": ["B-Stance Deadlift", "B-Stance Good Morning"],
           "Anterior-posterior single leg": ["Single Leg Hip Thrust", "Single Leg Glute Bridge"]
         }
       },
@@ -1680,7 +1812,7 @@
         label: "Push",
         subcategories: ["Horizontal push", "Vertical push"],
         exercises: {
-          "Horizontal push": ["Bankdrukken", "Dumbbell Chest Press", "Dips"],
+          "Horizontal push": ["Bench Press", "Dumbbell Chest Press", "Dips"],
           "Vertical push": ["Barbell Military Press", "Kettlebell Military Press", "Dumbbell Military Press"]
         }
       },
@@ -1707,24 +1839,24 @@
 
     const MACHINES_EXERCISES = {
       core: {
-        "Anti-extensie": ["Abdominal", "Rotary Torso"],
+        "Anti-extension": ["Abdominal", "Rotary Torso"],
         "Anti-lateral bending": ["Abdominal", "Rotary Torso"],
-        "Anti-rotatie": ["Rotary Torso", "Abdominal"],
+        "Anti-rotation": ["Rotary Torso", "Abdominal"],
         "Hip Flexion Stable Spine": ["Abdominal", "Rotary Torso"],
-        "Rotatie": ["Rotary Torso", "Abdominal"]
+        "Rotation": ["Rotary Torso", "Abdominal"]
       },
       squat: {
-        "Symmetrische squat": ["Leg Press", "Hack Squat", "Glute Apparaat"],
-        "Asymmetrische squat": ["Leg Press", "Hack Squat", "Glute Apparaat"],
-        "Single leg squat": ["Leg Press", "Hack Squat", "Glute Apparaat"]
+        "Symmetrical squat": ["Leg Press", "Hack Squat", "Glute Machine"],
+        "Asymmetrical squat": ["Leg Press", "Hack Squat", "Glute Machine"],
+        "Single leg squat": ["Leg Press", "Hack Squat", "Glute Machine"]
       },
       hinge: {
-        "Anterior-posterior asymmetrisch": ["Lying Leg Curl", "Abduction", "Seated Leg Curl"],
+        "Anterior-posterior asymmetrical": ["Lying Leg Curl", "Abduction", "Seated Leg Curl"],
         "Axial single leg": ["Lying Leg Curl", "Abduction", "Seated Leg Curl"],
-        "Anterior-posterior symmetrisch": ["Lying Leg Curl", "Abduction", "Seated Leg Curl"],
-        "Axial asymmetrisch": ["Lying Leg Curl", "Abduction", "Seated Leg Curl"],
+        "Anterior-posterior symmetrical": ["Lying Leg Curl", "Abduction", "Seated Leg Curl"],
+        "Axial asymmetrical": ["Lying Leg Curl", "Abduction", "Seated Leg Curl"],
         "Anterior-posterior single leg": ["Lying Leg Curl", "Abduction", "Seated Leg Curl"],
-        "Axial symmetrisch": ["Lying Leg Curl", "Abduction", "Seated Leg Curl"]
+        "Axial symmetrical": ["Lying Leg Curl", "Abduction", "Seated Leg Curl"]
       },
       push: {
         "Horizontal push": ["Chest Press", "Shoulder Press"],
@@ -1744,7 +1876,7 @@
       "Rotary Torso": "https://youtu.be/Iofbo65qEfY",
       "Leg Press": "https://youtu.be/BqtKBC68GJw",
       "Hack Squat": "https://youtu.be/rYgNArpwE7E",
-      "Glute Apparaat": "https://youtu.be/ErLphmV-y60",
+      "Glute Machine": "https://youtu.be/ErLphmV-y60",
       "Lying Leg Curl": "https://youtu.be/5xR8tvg4-yM",
       "Abduction": "https://youtu.be/H98IP8rARy4",
       "Seated Leg Curl": "https://youtu.be/t9sTSr-JYSs",
@@ -1790,7 +1922,7 @@
       "B-Stance Good Morning": "https://youtu.be/WukBALiI-Ts",
       "Single Leg Hip Thrust": "https://youtu.be/oiJaZqglauw",
       "Single Leg Glute Bridge": "https://youtu.be/Zb3ILLdI6fk",
-      "Bankdrukken": "https://youtu.be/-MAABwVKxok",
+      "Bench Press": "https://youtu.be/-MAABwVKxok",
       "Dumbbell Chest Press": "https://youtu.be/ZaDlbm8E8Tg",
       "Dips": "https://youtu.be/yZ83t4mrPrI",
       "Barbell Military Press": "https://youtu.be/cGnhixvC8uA",
@@ -1811,7 +1943,7 @@
     const WARMUP_CONTENT = [
       {
         heading: "Soft tissue work",
-        items: ["Gluteal and hip rotators", "TFL and Glute Med", "Adductors", "Footer roll"]
+        items: ["Gluteal and hip rotators", "TFL and Glute Med", "Adductors", "Foot roll"]
       },
       {
         heading: "Active Mobility Work",
@@ -1929,6 +2061,7 @@
           freeChoice: false,
           trainingStyle: "strength",
           strengthLens: "standard",
+          restDurationSec: 75,
           debugMultipleSessions: false,
           debugMultipleSessionsDate: null
         },
@@ -1975,6 +2108,12 @@
             beeped: false
           },
           groupC: {
+            endTime: null,
+            running: false,
+            lastDurationSec: 75,
+            beeped: false
+          },
+          workout: {
             endTime: null,
             running: false,
             lastDurationSec: 75,
@@ -2027,7 +2166,7 @@
         const parsed = JSON.parse(raw);
         return mergeWithDefaults(parsed);
       } catch (error) {
-        console.warn("Kon state niet laden, defaults worden gebruikt.", error);
+        console.warn("Could not load state; using defaults.", error);
         return createDefaultState();
       }
     }
@@ -2114,6 +2253,10 @@
           groupC: {
             ...base.timers.groupC,
             ...((saved.timers && saved.timers.groupC) || {})
+          },
+          workout: {
+            ...base.timers.workout,
+            ...((saved.timers && saved.timers.workout) || {})
           }
         },
         hiit: {
@@ -2135,6 +2278,8 @@
         history: Array.isArray(saved.history) ? saved.history : [],
         currentWorkout: saved.currentWorkout || null
       };
+      migrateExerciseName(merged, "Bankdrukken", "Bench Press");
+      migrateExerciseName(merged, "Glute Apparaat", "Glute Machine");
       if (saved.appVersion !== APP_VERSION) {
         if (merged.currentWorkout && merged.currentWorkout.rotationSnapshot) {
           merged.rotations = cloneRotations(merged.currentWorkout.rotationSnapshot);
@@ -2147,6 +2292,60 @@
         merged.settings.debugMultipleSessionsDate = null;
       }
       return merged;
+    }
+
+    function migrateExerciseName(targetState, oldName, newName) {
+      const records = targetState.records && targetState.records.exercises;
+      if (records && records[oldName]) {
+        records[newName] = {
+          ...records[oldName],
+          ...(records[newName] || {})
+        };
+        delete records[oldName];
+      }
+
+      if (targetState.currentWorkout && Array.isArray(targetState.currentWorkout.slots)) {
+        targetState.currentWorkout.slots.forEach((slot) => {
+          if (slot.exercise === oldName) {
+            slot.exercise = newName;
+          }
+        });
+      }
+
+      if (Array.isArray(targetState.history)) {
+        targetState.history.forEach((item) => {
+          if (!Array.isArray(item.slots)) {
+            return;
+          }
+          item.slots.forEach((slot) => {
+            if (slot.exercise === oldName) {
+              slot.exercise = newName;
+            }
+          });
+        });
+      }
+
+      Object.values(targetState.customExercises || {}).forEach((group) => {
+        if (Array.isArray(group)) {
+          group.forEach((exercise, index) => {
+            if (exercise === oldName) {
+              group[index] = newName;
+            }
+          });
+          return;
+        }
+
+        Object.values(group || {}).forEach((list) => {
+          if (!Array.isArray(list)) {
+            return;
+          }
+          list.forEach((exercise, index) => {
+            if (exercise === oldName) {
+              list[index] = newName;
+            }
+          });
+        });
+      });
     }
 
     function saveState() {
@@ -2195,7 +2394,7 @@
           }
         }
       } catch (error) {
-        console.warn("Kon focus-bag niet laden, nieuwe bag wordt gemaakt.", error);
+        console.warn("Could not load focus bag; creating a new one.", error);
       }
 
       const freshBag = shuffle(STOIC_FOCUS_LESSONS);
@@ -2216,7 +2415,7 @@
           }
         }
       } catch (error) {
-        console.warn("Kon vorige focus niet lezen.", error);
+        console.warn("Could not read previous focus.", error);
       }
 
       if (!bag.length) {
@@ -2271,7 +2470,7 @@
             }
           }
         } catch (error) {
-          console.warn("Kon focus van vandaag niet laden.", error);
+          console.warn("Could not load today's focus.", error);
         }
       }
 
@@ -2299,15 +2498,15 @@
       }
       if (slot.slotType === "main") {
         if (usingFemalePerformanceLens()) {
-          return "4 sets van 4 reps";
+          return "4 sets of 4 reps";
         }
         return getTrainingStyle().mainPrescription;
       }
       if (slot.patternKey === "core") {
-        return getTrainingStyle().corePrescription || "2-3 sets van 10 reps";
+        return getTrainingStyle().corePrescription || "2-3 sets of 10 reps";
       }
       if (slot.patternKey === "secondary") {
-        return getTrainingStyle().secondaryPrescription || "2-3 sets van 12 reps";
+        return getTrainingStyle().secondaryPrescription || "2-3 sets of 12 reps";
       }
       return "";
     }
@@ -2484,7 +2683,7 @@
       const trainingStyle = getTrainingStyle();
       const mainGuidance = usingFemalePerformanceLens()
         ? [
-            "All four main exercises: 4 sets van 4 reps.",
+            "All four main exercises: 4 sets of 4 reps.",
             "Use a heavy but crisp load. No grinders.",
             "Stop if speed or technique drops.",
             "Nudge up only when all 4x4 sets stay crisp; nudge down when speed or technique drops."
@@ -2509,7 +2708,7 @@
           guidance: [
             "Main A and Main B.",
             ...mainGuidance,
-            "RIR 4. Ruim stoppen voor traagheid of techniekverlies.",
+            "RIR 4. Stop well before reps slow down or technique breaks.",
             "No core and no secondary."
           ]
         };
@@ -2787,10 +2986,10 @@
         return "";
       }
       if (pendingNudge === "up") {
-        return "Last time: " + lastValue + " -- probeer iets zwaarder";
+        return "Last time: " + lastValue + " -- try a little heavier";
       }
       if (pendingNudge === "down") {
-        return "Last time: " + lastValue + " -- probeer iets lichter";
+        return "Last time: " + lastValue + " -- try a little lighter";
       }
       return "Last time: " + lastValue;
     }
@@ -2861,12 +3060,12 @@
     }
 
     function createTertiarySlot(id, counterPattern, freeChoiceMode) {
-      const label = "Tertiair " + PROGRAM[counterPattern].label;
+      const label = "Tertiary " + PROGRAM[counterPattern].label;
       const exercise = TERTIARY_BY_PATTERN[counterPattern] || getNextSecondaryExercise();
       if (freeChoiceMode) {
         return createFreeChoiceSlot(id, "tertiary", "secondary", label, {
           subcategory: "Secondary",
-          prescription: "2 sets van 10-15"
+          prescription: "2 sets of 10-15"
         });
       }
 
@@ -2882,7 +3081,7 @@
         inputValue: record.lastValue || "",
         nudgeChoice: null,
         setsDone: 0,
-        prescription: "2 sets van 10-15"
+        prescription: "2 sets of 10-15"
       };
       record.pendingNudge = null;
       return slot;
@@ -2906,7 +3105,7 @@
       const variety = list.length > 1
         ? list[(currentIndex + 1) % list.length]
         : main;
-      state.rotations.subcategories[key] = currentIndex + 2;
+      state.rotations.subcategories[key] = currentIndex + (["push", "pull"].includes(patternKey) ? 1 : 2);
       return { main, variety };
     }
 
@@ -2920,28 +3119,28 @@
 
       const mainSlot = makeSlot("specialized-main", "mainLift", mainPattern, "Main Lift", {
         subcategory: specializedPair.main,
-        prescription: "3-6 sets van 6-12"
+        prescription: "3-6 sets of 6-12"
       });
       slots.push(mainSlot);
 
-      slots.push(makeSlot("specialized-counter", "counter", counterPattern, "Wederpatroon", {
-        prescription: "2-3 sets van 6-12"
+      slots.push(makeSlot("specialized-counter", "counter", counterPattern, "Counter Pattern", {
+        prescription: "2-3 sets of 6-12"
       }));
 
       missingPatterns.forEach((patternKey, index) => {
-        slots.push(makeSlot("specialized-missing-" + index, "missing", patternKey, "Ontbrekend: " + PROGRAM[patternKey].label, {
-          prescription: "2 sets van 8-12"
+        slots.push(makeSlot("specialized-missing-" + index, "missing", patternKey, "Missing: " + PROGRAM[patternKey].label, {
+          prescription: "2 sets of 8-12"
         }));
       });
 
       slots.push(makeSlot("specialized-variety", "specializedVariety", mainPattern, "Priority Variety", {
         subcategory: specializedPair.variety,
-        prescription: "2-3 sets van 8-12"
+        prescription: "2-3 sets of 8-12"
       }));
 
       slots.push(createTertiarySlot("specialized-tertiary", counterPattern, freeChoiceMode));
       slots.push(makeSlot("specialized-core", "core", "core", "Core", {
-        prescription: "2 sets van 10"
+        prescription: "2 sets of 10"
       }));
       return slots;
     }
@@ -3074,13 +3273,13 @@
             ></iframe>
           </div>
           <div class="video-fallback">
-            <a class="secondary-button" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">Open op YouTube</a>
+            <a class="secondary-button" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">Open on YouTube</a>
           </div>
         `
         : `
           <div class="video-fallback">
-            <p class="subtle">Deze YouTube Short kan meestal niet betrouwbaar embedded worden afgespeeld in een lokale app.</p>
-            <a class="primary-button" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">Open op YouTube</a>
+            <p class="subtle">This YouTube Short usually cannot be embedded reliably in a local app.</p>
+            <a class="primary-button" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">Open on YouTube</a>
           </div>
         `;
 
@@ -3165,7 +3364,7 @@
     }
 
     function formatHiitPlan(plan) {
-      return plan.name + ": " + plan.targetSets + " x " + plan.workSec + " sec hard / " + getHiitRestSeconds(plan) + " sec rust.";
+      return plan.name + ": " + plan.targetSets + " x " + plan.workSec + " sec hard / " + getHiitRestSeconds(plan) + " sec rest.";
     }
 
     function getHiitRestSeconds(plan) {
@@ -3182,6 +3381,10 @@
       const minutes = Math.floor(safeSeconds / 60);
       const seconds = safeSeconds % 60;
       return String(minutes).padStart(2, "0") + ":" + String(seconds).padStart(2, "0");
+    }
+
+    function formatRestDurationLabel(totalSeconds) {
+      return Math.max(1, Number(totalSeconds) || 75) + "s";
     }
 
     function getRestTimerKeys() {
@@ -3605,6 +3808,7 @@
             ${guidanceHtml}
             ${warmupHtml}
             ${groupsHtml}
+            ${renderStickyRestTimer()}
             ${carryOverNote}
             ${modeNote}
             ${cooldownHtml}
@@ -3693,62 +3897,48 @@
           <div class="group-heading">
             <div>
               <h4>${escapeHtml(group.title)}</h4>
-              <p class="subtle">${escapeHtml(group.subtitle)}</p>
+              <p class="subtle" style="margin: 4px 0 0;">${escapeHtml(group.subtitle)}</p>
             </div>
-            <div class="slot-chip">${group.slots.length} exercises</div>
           </div>
           <div class="group-slots">
             ${group.slots.map((slot) => renderSlot(slot, freeChoiceMode)).join("")}
           </div>
-          ${renderGroupTimer(group.id)}
         </section>
       `;
     }
 
-    function renderGroupTimer(timerKey) {
+    function renderStickyRestTimer() {
+      const timerKey = "workout";
       const timer = getTimerState(timerKey);
+      const restDuration = Number(state.settings.restDurationSec) || 75;
+      const buttonLabel = timer.running
+        ? formatSeconds(getRemainingSeconds(timerKey))
+        : "Rest " + formatRestDurationLabel(restDuration);
       return `
-        <div class="mini-card">
-          <div class="timer-row centered">
-            <div>
-              <div class="slot-kicker">Rest between these exercises</div>
-              <div class="timer-display" id="timerDisplay-${escapeHtml(timerKey)}">${formatSeconds(getRemainingSeconds(timerKey))}</div>
-            </div>
-          </div>
-          <div class="timer-options">
-            ${GROUP_REST_OPTIONS.map((seconds) => `
-              <button class="primary-button" type="button" data-action="group-timer-start" data-timer-key="${escapeHtml(timerKey)}" data-duration="${seconds}">
-                ${timer.running && timer.lastDurationSec === seconds ? "Restart" : "Start"} ${formatSeconds(seconds)}
-              </button>
-            `).join("")}
-            <button class="secondary-button" type="button" data-action="group-timer-stop" data-timer-key="${escapeHtml(timerKey)}">Stop</button>
-          </div>
+        <div class="sticky-rest">
+          <button class="primary-button" type="button" data-action="group-timer-start" data-timer-key="${escapeHtml(timerKey)}" data-duration="${restDuration}">
+            <span id="timerDisplay-${escapeHtml(timerKey)}">${escapeHtml(buttonLabel)}</span>
+          </button>
+          <button class="secondary-button" type="button" data-action="group-timer-stop" data-timer-key="${escapeHtml(timerKey)}" ${timer.running ? "" : "disabled"}>Stop</button>
         </div>
       `;
     }
 
     function renderSlot(slot, freeChoiceMode) {
-      const nudgeMarkup = !freeChoiceMode && slot.previousText
-        ? `<div class="nudge-line">${escapeHtml(slot.previousText)}</div>`
-        : "";
       const prescription = getSlotPrescription(slot);
       const prescriptionMarkup = prescription
-        ? `<div class="nudge-line">${escapeHtml(prescription)}</div>`
+        ? `<div class="inline-prescription">${escapeHtml(prescription)}</div>`
         : "";
       const videoUrl = freeChoiceMode ? "" : getExerciseVideoUrl(slot.exercise);
       const videoMarkup = videoUrl
         ? `<button class="secondary-button video-link" type="button" data-action="show-video" data-video-url="${escapeHtml(videoUrl)}" data-video-title="${escapeHtml(slot.exercise)}">Video</button>`
         : "";
-      const metaMarkup = prescriptionMarkup || videoMarkup
-        ? `<div class="slot-meta-row">${prescriptionMarkup}${videoMarkup}</div>`
-        : "";
       const setCount = Number(slot.setsDone) || 0;
       const controlsMarkup = freeChoiceMode
         ? ""
         : `
-          <div class="slot-controls">
+          <div class="exercise-entry-line">
             <label class="input-wrap">
-              <span class="input-label">Load / note</span>
               <input
                 type="text"
                 value="${escapeHtml(slot.inputValue || "")}"
@@ -3764,29 +3954,26 @@
           </div>
         `;
       const setTrackerMarkup = `
-        <div class="set-tracker">
-          <div class="set-counter">Sets ${setCount}</div>
-          <div class="set-stepper">
-            <button class="secondary-button stepper-button" type="button" data-action="set-adjust" data-slot-id="${escapeHtml(slot.id)}" data-delta="-1" ${setCount <= 0 ? "disabled" : ""}>-1</button>
-            <button class="primary-button stepper-button" type="button" data-action="set-adjust" data-slot-id="${escapeHtml(slot.id)}" data-delta="1">+ Set</button>
-          </div>
+        <div class="compact-set-stepper" aria-label="Sets done">
+          <button class="secondary-button compact-stepper-button" type="button" data-action="set-adjust" data-slot-id="${escapeHtml(slot.id)}" data-delta="-1" ${setCount <= 0 ? "disabled" : ""}>-</button>
+          <span class="compact-count">${setCount}</span>
+          <button class="primary-button compact-stepper-button" type="button" data-action="set-adjust" data-slot-id="${escapeHtml(slot.id)}" data-delta="1">+</button>
         </div>
       `;
 
       return `
-        <article class="slot-card">
-          <div class="slot-top">
-            <div>
+        <div class="exercise-row">
+          <div class="exercise-main-line">
+            <div class="exercise-copy">
               ${freeChoiceMode ? `<p class="slot-kicker">${escapeHtml(slot.label)}</p>` : ""}
               <h4 class="slot-title">${escapeHtml(freeChoiceMode ? slot.subcategory : slot.exercise)}</h4>
-              ${metaMarkup}
+              ${prescriptionMarkup}
             </div>
-            <div class="slot-chip">${escapeHtml(slot.slotType === "main" ? "Main" : slot.label)}</div>
+            ${setTrackerMarkup}
+            ${videoMarkup}
           </div>
-          ${nudgeMarkup}
-          ${setTrackerMarkup}
           ${controlsMarkup}
-        </article>
+        </div>
       `;
     }
 
@@ -3843,16 +4030,16 @@
       const weightValue = state.hiit.weights[getHiitSessionKey(plan)] || "";
       const restSeconds = getHiitRestSeconds(plan);
       const phaseLabel = timer.phase === "work"
-        ? "Werk"
+        ? "Work"
         : timer.phase === "rest"
           ? "Rest"
           : timer.phase === "done"
             ? "Done"
             : "Ready for set";
       const startLabel = timer.running
-        ? "Timer loopt"
+        ? "Timer running"
         : timer.phase === "rest"
-          ? "Start rust"
+          ? "Start rest"
           : state.hiit.setsDone >= plan.targetSets
             ? "Reset and start"
             : "Start set";
@@ -3929,7 +4116,7 @@
 
     function renderRecoveryGuidance(plan) {
       let sections = [];
-      let summaryLabel = "Richtlijnen";
+      let summaryLabel = "Guidelines";
 
       if (plan.effectiveSessionType === "breatheRest") {
         sections = [
@@ -3941,7 +4128,7 @@
         ];
       } else if (plan.effectiveSessionType === "hiit") {
         sections = [
-          { heading: "HIIT", items: [plan.hiitSets + " sets.", "Quality over violence.", "Voelt de warming-up slecht, switch naar Breathe & Rest of Exploration."] }
+          { heading: "HIIT", items: [plan.hiitSets + " sets.", "Quality over violence.", "If the warm-up feels bad, switch to Breathe & Rest or Exploration."] }
         ];
       } else if (plan.effectiveSessionType === "recovery") {
         summaryLabel = "Recovery day";
@@ -4306,6 +4493,9 @@
           </div>
         </label>
       `).join("");
+      const restDurationOptions = REST_DURATION_OPTIONS.map((seconds) => `
+        <option value="${seconds}" ${Number(state.settings.restDurationSec) === seconds ? "selected" : ""}>${escapeHtml(formatRestDurationLabel(seconds))}</option>
+      `).join("");
       const strengthLensMarkup = state.settings.trainingStyle === "strength"
         ? `
           <div class="mini-card" style="margin-top: 14px;">
@@ -4357,6 +4547,14 @@
               <label class="switch" aria-label="Free choice on or off">
                 <input type="checkbox" id="freeChoiceToggle" ${state.settings.freeChoice ? "checked" : ""}>
                 <span class="slider"></span>
+              </label>
+            </div>
+            <div class="mini-card" style="margin-top: 14px;">
+              <label class="input-wrap">
+                <span class="input-label">Rest duration</span>
+                <select id="restDurationSelect">
+                  ${restDurationOptions}
+                </select>
               </label>
             </div>
             <div class="mini-card" style="margin-top: 14px;">
@@ -4420,6 +4618,13 @@
 
       document.getElementById("freeChoiceToggle").addEventListener("change", (event) => {
         state.settings.freeChoice = event.target.checked;
+        saveState();
+        renderApp();
+        switchTab(TABS.OPTIONS);
+      });
+
+      document.getElementById("restDurationSelect").addEventListener("change", (event) => {
+        state.settings.restDurationSec = Number(event.target.value) || 75;
         saveState();
         renderApp();
         switchTab(TABS.OPTIONS);
