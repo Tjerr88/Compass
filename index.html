@@ -6,7 +6,7 @@
   <title>Compass</title>
   <meta name="theme-color" content="#384437">
   <meta name="description" content="Compass - daily practice for strength, health and character.">
-  <meta name="compass-build" content="2026-07-07-english-polish-1">
+  <meta name="compass-build" content="2026-07-07-more-confetti-1">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Compass">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -689,6 +689,7 @@
     }
 
     input[type="text"],
+    input[type="date"],
     select {
       width: 100%;
       border: 1px solid var(--line-strong);
@@ -702,6 +703,7 @@
     }
 
     input[type="text"]:focus,
+    input[type="date"]:focus,
     select:focus {
       border-color: rgba(85, 98, 74, 0.42);
       box-shadow: 0 0 0 4px rgba(85, 98, 74, 0.08);
@@ -1577,7 +1579,7 @@
     const LS_FOCUS_BAG_KEY = "session_compass_focus_bag_v2";
     const LS_FOCUS_DAY_KEY = "session_compass_focus_day_v2";
     const LS_FOCUS_TODAY_KEY = "session_compass_focus_today_v2";
-    const APP_VERSION = 13;
+    const APP_VERSION = 16;
     let deferredInstallPrompt = null;
     const TABS = { TODAY: "today", OPTIONS: "options", CUSTOM: "custom" };
     const RECOVERY_FIELDS = [
@@ -2371,6 +2373,19 @@
       const month = String(now.getMonth() + 1).padStart(2, "0");
       const day = String(now.getDate()).padStart(2, "0");
       return year + "-" + month + "-" + day;
+    }
+
+    function getDateKeyDaysAgo(daysAgo) {
+      const date = new Date();
+      date.setDate(date.getDate() - daysAgo);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      return year + "-" + month + "-" + day;
+    }
+
+    function getNoonIsoFromDateKey(dateKey) {
+      return new Date(dateKey + "T12:00:00").toISOString();
     }
 
     function isValidFocusLesson(value) {
@@ -3697,24 +3712,27 @@
       const lastItem = getLastLoggedItem();
       const summary = lastItem
         ? (lastItem.type === "skip"
-          ? "Today's session has been skipped."
-          : "Today's session has been logged.")
-        : "Today's work is done.";
+          ? "Session skipped."
+          : "Session logged.")
+        : "Done.";
+      const lastLog = lastItem
+        ? `${escapeHtml(lastItem.title)} - ${escapeHtml(formatDateTime(lastItem.completedAt))}`
+        : "";
 
       return `
         <article class="card action-card finished-card">
           <div class="finished-mark">OK</div>
           <div class="card-header">
             <div>
-              <p class="action-kicker">Closed for today</p>
-              <h3>Finished for today</h3>
-              <p class="subtle">Compass will unlock the next session when it is a new day.</p>
+              <p class="action-kicker">Today</p>
+              <h3>Done</h3>
+              <p class="subtle">${escapeHtml(summary)}</p>
             </div>
-            <div class="slot-chip">Closed</div>
           </div>
-          <div class="action-value">Today's work is done.</div>
-          <p class="action-support">${escapeHtml(summary)}</p>
-          ${lastItem ? `<p class="subtle">Last log: ${escapeHtml(lastItem.title)} - ${escapeHtml(formatDateTime(lastItem.completedAt))}</p>` : ""}
+          ${lastItem ? `<p class="subtle">Last log: ${lastLog}</p>` : ""}
+          <div class="button-row">
+            <button class="secondary-button" type="button" id="moreConfettiButton">More confetti</button>
+          </div>
         </article>
       `;
     }
@@ -3728,6 +3746,7 @@
             ${renderFinishedState()}
           </div>
         `;
+        document.getElementById("moreConfettiButton").addEventListener("click", launchConfetti);
         return;
       }
 
@@ -4447,6 +4466,43 @@
       switchTab(TABS.TODAY);
     }
 
+    function getManualSessionTitle(sessionType) {
+      if (sessionType === "strength") {
+        return "Resistance Training";
+      }
+      return SESSION_LABELS[sessionType] || "Session";
+    }
+
+    function handleAddMissedSession() {
+      const dateInput = document.getElementById("missedSessionDate");
+      const typeInput = document.getElementById("missedSessionType");
+      const dateKey = dateInput ? dateInput.value : "";
+      const sessionType = typeInput ? typeInput.value : "";
+
+      if (!dateKey || !sessionType) {
+        return;
+      }
+
+      state.history.unshift({
+        id: "history-" + Date.now(),
+        type: "manual",
+        sessionType,
+        title: getManualSessionTitle(sessionType),
+        completedAt: getNoonIsoFromDateKey(dateKey),
+        recoveryBand: "",
+        recoveryTotal: null,
+        freeChoiceMode: false,
+        manualEntry: true,
+        slots: []
+      });
+
+      state.history.sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt));
+      state.currentWorkout = null;
+      saveState();
+      renderApp();
+      switchTab(TABS.OPTIONS);
+    }
+
     function renderOptions() {
       const view = document.getElementById("optionsView");
       const historyItems = state.history.length
@@ -4495,6 +4551,15 @@
       `).join("");
       const restDurationOptions = REST_DURATION_OPTIONS.map((seconds) => `
         <option value="${seconds}" ${Number(state.settings.restDurationSec) === seconds ? "selected" : ""}>${escapeHtml(formatRestDurationLabel(seconds))}</option>
+      `).join("");
+      const missedSessionOptions = [
+        { key: "zone2", label: "Zone 2" },
+        { key: "hiit", label: "HIIT" },
+        { key: "strength", label: "Resistance Training" },
+        { key: "recovery", label: "Recovery day" },
+        { key: "breatheRest", label: "Breathe & Rest" }
+      ].map((option) => `
+        <option value="${escapeHtml(option.key)}" ${option.key === "zone2" ? "selected" : ""}>${escapeHtml(option.label)}</option>
       `).join("");
       const strengthLensMarkup = state.settings.trainingStyle === "strength"
         ? `
@@ -4596,6 +4661,22 @@
                 <p class="subtle">Recent completed or skipped sessions.</p>
               </div>
             </div>
+            <div class="mini-card" style="margin-bottom: 14px;">
+              <h4>Add missed session</h4>
+              <div class="hiit-controls" style="margin-top: 10px;">
+                <label class="input-wrap">
+                  <span class="input-label">Date</span>
+                  <input type="date" id="missedSessionDate" value="${escapeHtml(getDateKeyDaysAgo(1))}">
+                </label>
+                <label class="input-wrap">
+                  <span class="input-label">Session</span>
+                  <select id="missedSessionType">
+                    ${missedSessionOptions}
+                  </select>
+                </label>
+                <button class="primary-button" type="button" id="addMissedSessionButton">Add</button>
+              </div>
+            </div>
             <div class="history-grid">
               ${historyItems}
             </div>
@@ -4660,6 +4741,7 @@
         });
       }
 
+      document.getElementById("addMissedSessionButton").addEventListener("click", handleAddMissedSession);
       document.getElementById("resetButton").addEventListener("click", handleReset);
     }
 
