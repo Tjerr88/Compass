@@ -6,7 +6,7 @@
   <title>Compass</title>
   <meta name="theme-color" content="#384437">
   <meta name="description" content="Compass - daily practice for strength, health and character.">
-  <meta name="compass-build" content="2026-07-07-manual-history-label-1">
+  <meta name="compass-build" content="2026-07-09-nudge-complete-sets-1">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Compass">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -565,8 +565,7 @@
       white-space: nowrap;
     }
 
-    .compact-stepper-button,
-    .compact-count {
+    .compact-stepper-button {
       width: 34px;
       height: 34px;
       min-height: 34px;
@@ -579,7 +578,12 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
+      min-height: 34px;
+      padding: 0 8px;
+      border-radius: 10px;
       color: var(--primary-strong);
+      font-size: 0.82rem;
+      font-weight: 900;
     }
 
     .video-modal {
@@ -1579,7 +1583,7 @@
     const LS_FOCUS_BAG_KEY = "session_compass_focus_bag_v2";
     const LS_FOCUS_DAY_KEY = "session_compass_focus_day_v2";
     const LS_FOCUS_TODAY_KEY = "session_compass_focus_today_v2";
-    const APP_VERSION = 17;
+    const APP_VERSION = 18;
     let deferredInstallPrompt = null;
     const TABS = { TODAY: "today", OPTIONS: "options", CUSTOM: "custom" };
     const RECOVERY_FIELDS = [
@@ -2996,15 +3000,65 @@
       return state.records.exercises[exercise];
     }
 
-    function buildPreviousText(lastValue, pendingNudge) {
+    function normalizeNudgeChoice(nudgeChoice) {
+      if (!nudgeChoice) {
+        return null;
+      }
+      if (typeof nudgeChoice === "string") {
+        return { direction: nudgeChoice, level: 1 };
+      }
+      if (nudgeChoice.direction !== "up" && nudgeChoice.direction !== "down") {
+        return null;
+      }
+      return {
+        direction: nudgeChoice.direction,
+        level: Math.max(1, Math.min(2, Number(nudgeChoice.level) || 1))
+      };
+    }
+
+    function getNudgeBasePercent(patternKey) {
+      return patternKey === "squat" || patternKey === "hinge" ? 0.05 : 0.025;
+    }
+
+    function roundLoadToStep(value) {
+      return Math.round(value / 2.5) * 2.5;
+    }
+
+    function formatLoadValue(value) {
+      return Number.isInteger(value) ? String(value) : value.toFixed(1);
+    }
+
+    function applyPendingNudgeToValue(lastValue, pendingNudge, patternKey) {
+      const nudge = normalizeNudgeChoice(pendingNudge);
+      if (!lastValue || !nudge) {
+        return lastValue || "";
+      }
+
+      const match = String(lastValue).match(/\d+(?:[.,]\d+)?/);
+      if (!match) {
+        return lastValue;
+      }
+
+      const currentValue = Number(match[0].replace(",", "."));
+      if (!Number.isFinite(currentValue) || currentValue <= 0) {
+        return lastValue;
+      }
+
+      const direction = nudge.direction === "down" ? -1 : 1;
+      const percent = getNudgeBasePercent(patternKey) * nudge.level;
+      const nextValue = Math.max(0, roundLoadToStep(currentValue * (1 + direction * percent)));
+      return String(lastValue).slice(0, match.index) + formatLoadValue(nextValue) + String(lastValue).slice(match.index + match[0].length);
+    }
+
+    function buildPreviousText(lastValue, pendingNudge, patternKey) {
       if (!lastValue) {
         return "";
       }
-      if (pendingNudge === "up") {
-        return "Last time: " + lastValue + " -- try a little heavier";
-      }
-      if (pendingNudge === "down") {
-        return "Last time: " + lastValue + " -- try a little lighter";
+      const nudge = normalizeNudgeChoice(pendingNudge);
+      if (nudge) {
+        const percent = getNudgeBasePercent(patternKey) * nudge.level * 100;
+        const directionText = nudge.direction === "up" ? "up" : "down";
+        return "Last time: " + lastValue + " -- nudged " + directionText + " " + percent + "%";
       }
       return "Last time: " + lastValue;
     }
@@ -3014,8 +3068,8 @@
       const subcategory = slotOptions.subcategory || getNextSubcategory(patternKey);
       const exercise = slotOptions.exercise || getNextExercise(patternKey, subcategory);
       const record = getExerciseRecord(exercise);
-      const previousText = buildPreviousText(record.lastValue, record.pendingNudge);
-      const inputValue = record.lastValue || "";
+      const previousText = buildPreviousText(record.lastValue, record.pendingNudge, patternKey);
+      const inputValue = applyPendingNudgeToValue(record.lastValue, record.pendingNudge, patternKey);
       const slot = {
         id,
         slotType,
@@ -3064,8 +3118,8 @@
         label: "Secondary",
         subcategory: "Secondary",
         exercise,
-        previousText: buildPreviousText(record.lastValue, record.pendingNudge),
-        inputValue: record.lastValue || "",
+        previousText: buildPreviousText(record.lastValue, record.pendingNudge, "secondary"),
+        inputValue: applyPendingNudgeToValue(record.lastValue, record.pendingNudge, "secondary"),
         nudgeChoice: null,
         setsDone: 0,
         prescription: ""
@@ -3092,8 +3146,8 @@
         label,
         subcategory: "Secondary",
         exercise,
-        previousText: buildPreviousText(record.lastValue, record.pendingNudge),
-        inputValue: record.lastValue || "",
+        previousText: buildPreviousText(record.lastValue, record.pendingNudge, "secondary"),
+        inputValue: applyPendingNudgeToValue(record.lastValue, record.pendingNudge, "secondary"),
         nudgeChoice: null,
         setsDone: 0,
         prescription: "2 sets of 10-15"
@@ -3795,7 +3849,11 @@
           </div>
         `;
         bindWorkoutControls();
-        document.getElementById("finishRecoveryButton").addEventListener("click", handleFinishRecoveryDay);
+        document.getElementById("finishRecoveryButton").addEventListener("click", () => {
+          if (window.confirm("Mark session as complete?")) {
+            handleFinishRecoveryDay();
+          }
+        });
         document.getElementById("skipDayButton").addEventListener("click", handleSkipDay);
         return;
       }
@@ -3943,6 +4001,19 @@
       `;
     }
 
+    function getNudgeLevel(slot, direction) {
+      const nudge = normalizeNudgeChoice(slot.nudgeChoice);
+      return nudge && nudge.direction === direction ? nudge.level : 0;
+    }
+
+    function getNudgeButtonLabel(slot, direction) {
+      const level = getNudgeLevel(slot, direction);
+      if (!level) {
+        return direction === "up" ? "+" : "-";
+      }
+      return (direction === "up" ? "+" : "-") + level;
+    }
+
     function renderSlot(slot, freeChoiceMode) {
       const prescription = getSlotPrescription(slot);
       const prescriptionMarkup = prescription
@@ -3953,6 +4024,7 @@
         ? `<button class="secondary-button video-link" type="button" data-action="show-video" data-video-url="${escapeHtml(videoUrl)}" data-video-title="${escapeHtml(slot.exercise)}">Video</button>`
         : "";
       const setCount = Number(slot.setsDone) || 0;
+      const nudge = normalizeNudgeChoice(slot.nudgeChoice);
       const controlsMarkup = freeChoiceMode
         ? ""
         : `
@@ -3967,15 +4039,15 @@
               >
             </label>
             <div class="nudge-controls">
-              <button class="nudge-button ${slot.nudgeChoice === "down" ? "active-down" : ""}" type="button" data-action="nudge" data-slot-id="${escapeHtml(slot.id)}" data-direction="down" aria-label="A little lighter next time">-</button>
-              <button class="nudge-button ${slot.nudgeChoice === "up" ? "active-up" : ""}" type="button" data-action="nudge" data-slot-id="${escapeHtml(slot.id)}" data-direction="up" aria-label="A little heavier next time">+</button>
+              <button class="nudge-button ${nudge && nudge.direction === "down" ? "active-down" : ""}" type="button" data-action="nudge" data-slot-id="${escapeHtml(slot.id)}" data-direction="down" aria-label="A little lighter next time">${escapeHtml(getNudgeButtonLabel(slot, "down"))}</button>
+              <button class="nudge-button ${nudge && nudge.direction === "up" ? "active-up" : ""}" type="button" data-action="nudge" data-slot-id="${escapeHtml(slot.id)}" data-direction="up" aria-label="A little heavier next time">${escapeHtml(getNudgeButtonLabel(slot, "up"))}</button>
             </div>
           </div>
         `;
       const setTrackerMarkup = `
         <div class="compact-set-stepper" aria-label="Sets done">
           <button class="secondary-button compact-stepper-button" type="button" data-action="set-adjust" data-slot-id="${escapeHtml(slot.id)}" data-delta="-1" ${setCount <= 0 ? "disabled" : ""}>-</button>
-          <span class="compact-count">${setCount}</span>
+          <span class="compact-count">Completed sets: ${setCount}</span>
           <button class="primary-button compact-stepper-button" type="button" data-action="set-adjust" data-slot-id="${escapeHtml(slot.id)}" data-delta="1">+</button>
         </div>
       `;
@@ -4244,7 +4316,14 @@
           if (!slot) {
             return;
           }
-          slot.nudgeChoice = slot.nudgeChoice === direction ? null : direction;
+          const current = normalizeNudgeChoice(slot.nudgeChoice);
+          if (!current || current.direction !== direction) {
+            slot.nudgeChoice = { direction, level: 1 };
+          } else if (current.level === 1) {
+            slot.nudgeChoice = { direction, level: 2 };
+          } else {
+            slot.nudgeChoice = null;
+          }
           saveState();
           renderToday();
         });
@@ -4272,7 +4351,11 @@
 
       const finishButton = document.getElementById("finishWorkoutButton");
       if (finishButton) {
-        finishButton.addEventListener("click", handleFinishWorkout);
+        finishButton.addEventListener("click", () => {
+          if (window.confirm("Mark session as complete?")) {
+            handleFinishWorkout();
+          }
+        });
       }
     }
 
@@ -4389,7 +4472,7 @@
           if (slot.inputValue && slot.inputValue.trim()) {
             record.lastValue = slot.inputValue.trim();
           }
-          record.pendingNudge = slot.nudgeChoice || null;
+          record.pendingNudge = normalizeNudgeChoice(slot.nudgeChoice);
         }
       });
 
