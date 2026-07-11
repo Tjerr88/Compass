@@ -1627,6 +1627,23 @@
 
     const GROUP_REST_OPTIONS = [60, 75, 90];
     const REST_DURATION_OPTIONS = [60, 75, 90, 120];
+    const HELLFIRE_COOLDOWN_DAYS = 14;
+    const HIIT_FINISHER_TIME_CAP_SEC = 300;
+    const CLIENT_AB_TARGET_COMPLETIONS = 6;
+    const CLIENT_AB_BASE_DAYS = {
+      A: [
+        { patternKey: "squat", subcategory: "Symmetrical squat" },
+        { patternKey: "pull", subcategory: "Horizontal pull" },
+        { patternKey: "hinge", subcategory: "Anterior-posterior asymmetrical" },
+        { patternKey: "push", subcategory: "Horizontal push" }
+      ],
+      B: [
+        { patternKey: "hinge", subcategory: "Axial symmetrical" },
+        { patternKey: "push", subcategory: "Vertical push" },
+        { patternKey: "squat", subcategory: "Asymmetrical squat" },
+        { patternKey: "pull", subcategory: "Vertical pull" }
+      ]
+    };
     const TRAINING_STYLE_OPTIONS = {
       strength: {
         key: "strength",
@@ -1841,6 +1858,17 @@
       { name: "Kettlebell swings", fullSets: 10, halfSets: 5, workSec: 20, restSec: 60, restLabel: "45-60 sec rest" },
       { name: "Airbike or bike", fullSets: 8, halfSets: 4, workSec: 20, restSec: 100, restLabel: "100 sec easy" },
       { name: "Sprint", fullSets: 8, halfSets: 4, workSec: 12, restSec: 105, restLabel: "90-120 sec walk" }
+    ];
+
+    const HELLFIRE_BENCHMARK_WORKOUT = [
+      { name: "Two-arm Swing", reps: "30 reps" },
+      { name: "Deadlift", reps: "25 reps" },
+      { name: "Snatch", reps: "50 reps, 25 per arm" },
+      { name: "Goblet Squat", reps: "35 reps" },
+      { name: "One-arm Swing", reps: "60 reps, 30 per arm" },
+      { name: "Russian Twist", reps: "40 reps" },
+      { name: "Clean & Press", reps: "30 reps, 15 per arm" },
+      { name: "Two-arm Swing", reps: "30 reps" }
     ];
 
     const MACHINES_EXERCISES = {
@@ -2068,8 +2096,18 @@
           trainingStyle: "strength",
           strengthLens: "standard",
           restDurationSec: 75,
+          scratchTheItchTraining: false,
+          strengthHiitFinisher: false,
+          clientABBlocks: false,
           debugMultipleSessions: false,
           debugMultipleSessionsDate: null
+        },
+        clientAB: {
+          phase: 0,
+          completed: {
+            A: 0,
+            B: 0
+          }
         },
         recoveryCheckins: {},
         rotations: {
@@ -2185,6 +2223,14 @@
         settings: {
           ...base.settings,
           ...(saved.settings || {})
+        },
+        clientAB: {
+          ...base.clientAB,
+          ...(saved.clientAB || {}),
+          completed: {
+            ...base.clientAB.completed,
+            ...((saved.clientAB && saved.clientAB.completed) || {})
+          }
         },
         recoveryCheckins: {
           ...base.recoveryCheckins,
@@ -2530,6 +2576,92 @@
       return "";
     }
 
+    function usingClientABBlocks() {
+      return !!state.settings.clientABBlocks;
+    }
+
+    function getClientABCompletions(dayKey) {
+      return Math.max(0, Number(state.clientAB.completed[dayKey]) || 0);
+    }
+
+    function getCurrentClientABDay() {
+      const aDone = getClientABCompletions("A");
+      const bDone = getClientABCompletions("B");
+      if (aDone >= CLIENT_AB_TARGET_COMPLETIONS && bDone >= CLIENT_AB_TARGET_COMPLETIONS) {
+        return "A";
+      }
+      if (aDone >= CLIENT_AB_TARGET_COMPLETIONS) {
+        return "B";
+      }
+      if (bDone >= CLIENT_AB_TARGET_COMPLETIONS) {
+        return "A";
+      }
+      return aDone <= bDone ? "A" : "B";
+    }
+
+    function advanceLowerSubcategory(patternKey, subcategory, steps) {
+      const list = (PROGRAM[patternKey] && PROGRAM[patternKey].subcategories) || [];
+      const index = list.indexOf(subcategory);
+      if (index < 0 || !list.length) {
+        return subcategory;
+      }
+
+      if (patternKey === "squat") {
+        const cycle = ["Symmetrical squat", "Asymmetrical squat", "Single leg squat"];
+        const cycleIndex = cycle.indexOf(subcategory);
+        return cycle[cycleIndex < 0 ? 0 : (cycleIndex + steps) % cycle.length];
+      }
+
+      if (patternKey === "hinge") {
+        const prefix = subcategory.startsWith("Axial") ? "Axial" : "Anterior-posterior";
+        const quality = subcategory.includes("single leg")
+          ? "single leg"
+          : subcategory.includes("asymmetrical")
+            ? "asymmetrical"
+            : "symmetrical";
+        const cycle = ["symmetrical", "asymmetrical", "single leg"];
+        const nextQuality = cycle[(cycle.indexOf(quality) + steps) % cycle.length];
+        const nextSubcategory = prefix + " " + nextQuality;
+        return list.includes(nextSubcategory) ? nextSubcategory : subcategory;
+      }
+
+      return list[(index + steps) % list.length];
+    }
+
+    function getClientABSlotDefinitions(dayKey) {
+      const phase = Math.max(0, Number(state.clientAB.phase) || 0);
+      const lowerSteps = phase % 3;
+      const upperSwap = phase % 2 === 1;
+      return CLIENT_AB_BASE_DAYS[dayKey].map((slot) => {
+        let subcategory = slot.subcategory;
+        if (slot.patternKey === "squat" || slot.patternKey === "hinge") {
+          subcategory = advanceLowerSubcategory(slot.patternKey, subcategory, lowerSteps);
+        }
+        if (upperSwap && slot.patternKey === "push") {
+          subcategory = slot.subcategory === "Horizontal push" ? "Vertical push" : "Horizontal push";
+        }
+        if (upperSwap && slot.patternKey === "pull") {
+          subcategory = slot.subcategory === "Horizontal pull" ? "Vertical pull" : "Horizontal pull";
+        }
+        return {
+          ...slot,
+          subcategory
+        };
+      });
+    }
+
+    function getClientABProgressLabel() {
+      return "Block " + ((Number(state.clientAB.phase) || 0) + 1) + " - A " + getClientABCompletions("A") + "/" + CLIENT_AB_TARGET_COMPLETIONS + ", B " + getClientABCompletions("B") + "/" + CLIENT_AB_TARGET_COMPLETIONS;
+    }
+
+    function advanceClientABBlock(dayKey) {
+      state.clientAB.completed[dayKey] = getClientABCompletions(dayKey) + 1;
+      if (getClientABCompletions("A") >= CLIENT_AB_TARGET_COMPLETIONS && getClientABCompletions("B") >= CLIENT_AB_TARGET_COMPLETIONS) {
+        state.clientAB.phase = (Number(state.clientAB.phase) || 0) + 1;
+        state.clientAB.completed = { A: 0, B: 0 };
+      }
+    }
+
     function resetCurrentWorkoutWithLatestExercises() {
       if (!state.currentWorkout) {
         return false;
@@ -2700,6 +2832,17 @@
 
     function getStrengthDose(bandKey) {
       const trainingStyle = getTrainingStyle();
+      if (usingClientABBlocks()) {
+        return {
+          title: "Training " + getCurrentClientABDay(),
+          summary: getClientABProgressLabel(),
+          guidance: [
+            "Complete the shown A/B training.",
+            "Each training is checked off 6 times before Compass builds the next block.",
+            "Loads can still be recorded and nudged, but the exercise structure stays fixed for the block."
+          ]
+        };
+      }
       const mainGuidance = usingFemalePerformanceLens()
         ? [
             "All four main exercises: 4 sets of 4 reps.",
@@ -2793,6 +2936,26 @@
       return bandKey === "low" ? 6 : bandKey === "medium" ? 8 : 10;
     }
 
+    function getLastHellfireSession() {
+      return state.history.find((item) => item.hiitVariant === "hellfireBenchmark" || item.hiitVariant === "hellfire" || item.hellfireBenchmark || item.hellfireTargetSU);
+    }
+
+    function shouldUseHellfireToday(baseSessionType, total) {
+      if (!state.settings.scratchTheItchTraining || baseSessionType !== "hiit" || total !== 15) {
+        return false;
+      }
+      const lastHellfire = getLastHellfireSession();
+      return !lastHellfire || getDaysSinceDate(lastHellfire.completedAt) >= HELLFIRE_COOLDOWN_DAYS;
+    }
+
+    function getHiitFinisherSetTarget(plan) {
+      let sets = 1;
+      while (((sets + 1) * plan.workSec) + (sets * plan.restSec) <= HIIT_FINISHER_TIME_CAP_SEC) {
+        sets += 1;
+      }
+      return sets;
+    }
+
     function getTodayPlan() {
       const dateKey = getTodayKey();
       const checkin = getTodayRecoveryCheckin();
@@ -2854,6 +3017,21 @@
       }
 
       if (baseSessionType === "hiit") {
+        if (shouldUseHellfireToday(baseSessionType, total)) {
+          return {
+            dateKey,
+            checkin,
+            total,
+            band,
+            baseSessionType,
+            effectiveSessionType: "hiit",
+            hiitVariant: "hellfireBenchmark",
+            title: "Hellfire Benchmark",
+            subtitle: "Scratch-the-itch benchmark training.",
+            summary: "Perfect recovery unlocks one fixed benchmark so you can compare output over time.",
+            hellfireBenchmark: true
+          };
+        }
         const hiitSets = getHiitSetTarget(band.key);
         return {
           dateKey,
@@ -3214,6 +3392,14 @@
       return slots;
     }
 
+    function createClientABWorkoutSlots(dayKey, freeChoiceMode) {
+      const makeSlot = freeChoiceMode ? createFreeChoiceSlot : createAutoSlot;
+      return getClientABSlotDefinitions(dayKey).map((slot, index) => makeSlot("client-" + dayKey.toLowerCase() + "-" + index, "clientMain", slot.patternKey, PROGRAM[slot.patternKey].label, {
+        subcategory: slot.subcategory,
+        prescription: "2-4 hard clean sets"
+      }));
+    }
+
     function ensureCurrentWorkout(plan) {
       if (!plan || plan.effectiveSessionType !== "strength") {
         return;
@@ -3225,9 +3411,27 @@
 
       const freeChoiceMode = !!state.settings.freeChoice;
       const rotationSnapshot = cloneRotations(state.rotations);
-      const mainOrder = rotateMainOrder();
       const slots = [];
 
+      if (usingClientABBlocks()) {
+        const dayKey = getCurrentClientABDay();
+        state.currentWorkout = {
+          id: "workout-" + Date.now(),
+          planDate: plan.dateKey,
+          generatedAt: new Date().toISOString(),
+          freeChoiceMode,
+          rotationSnapshot,
+          order: [dayKey],
+          layout: "clientAB",
+          clientABDay: dayKey,
+          clientABPhase: Number(state.clientAB.phase) || 0,
+          slots: createClientABWorkoutSlots(dayKey, freeChoiceMode)
+        };
+        saveState();
+        return;
+      }
+
+      const mainOrder = rotateMainOrder();
       if (usingSpecializedStyle()) {
         state.currentWorkout = {
           id: "workout-" + Date.now(),
@@ -3432,6 +3636,21 @@
       };
     }
 
+    function getCurrentHiitFinisherPlan() {
+      const currentIndex = state.rotations.subcategories.hiit || 0;
+      const plan = HIIT_PLANS[currentIndex % HIIT_PLANS.length];
+      return {
+        ...plan,
+        optionIndex: currentIndex % HIIT_PLANS.length,
+        mode: "finisher",
+        targetSets: getHiitFinisherSetTarget(plan)
+      };
+    }
+
+    function getActiveHiitPlan() {
+      return state.hiit.activeMode === "finisher" ? getCurrentHiitFinisherPlan() : getCurrentHiitPlan();
+    }
+
     function formatHiitPlan(plan) {
       return plan.name + ": " + plan.targetSets + " x " + plan.workSec + " sec hard / " + getHiitRestSeconds(plan) + " sec rest.";
     }
@@ -3585,7 +3804,7 @@
     function getHiitRemainingSeconds() {
       const timer = state.hiit.timer;
       if (!timer.running || !timer.endTime) {
-        const plan = getCurrentHiitPlan(state.hiit.activeMode === "half");
+        const plan = getActiveHiitPlan();
         return timer.phase === "rest" ? getHiitRestSeconds(plan) : plan.workSec;
       }
       return Math.max(0, Math.ceil((timer.endTime - Date.now()) / 1000));
@@ -3597,26 +3816,34 @@
         return;
       }
 
-      const plan = getCurrentHiitPlan(state.hiit.activeMode === "half");
+      const plan = getActiveHiitPlan();
       timer.beeped = true;
       playBeep(timer.phase === "work" ? 1175 : 880);
 
       if (timer.phase === "work") {
         state.hiit.setsDone = Math.min(plan.targetSets, (state.hiit.setsDone || 0) + 1);
-        timer.phase = state.hiit.setsDone >= plan.targetSets ? "done" : "rest";
-        timer.running = false;
-        timer.endTime = null;
+        if (state.hiit.setsDone >= plan.targetSets) {
+          timer.phase = "done";
+          timer.running = false;
+          timer.endTime = null;
+        } else {
+          timer.phase = "rest";
+          timer.endTime = Date.now() + (getHiitRestSeconds(plan) * 1000);
+          timer.running = true;
+          timer.beeped = false;
+        }
       } else {
-        timer.phase = "idle";
-        timer.running = false;
-        timer.endTime = null;
+        timer.phase = "work";
+        timer.endTime = Date.now() + (plan.workSec * 1000);
+        timer.running = true;
+        timer.beeped = false;
       }
       saveState();
       renderApp();
     }
 
     function startHiitPhase(phase) {
-      const plan = getCurrentHiitPlan(state.hiit.activeMode === "half");
+      const plan = getActiveHiitPlan();
       if (state.hiit.setsDone >= plan.targetSets && phase === "work") {
         state.hiit.setsDone = 0;
       }
@@ -3651,13 +3878,13 @@
     }
 
     function updateHiitWeight(value) {
-      const plan = getCurrentHiitPlan(state.hiit.activeMode === "half");
+      const plan = getActiveHiitPlan();
       state.hiit.weights[getHiitSessionKey(plan)] = value;
       saveState();
     }
 
     function updateHiitRestDuration(value) {
-      const plan = getCurrentHiitPlan(state.hiit.activeMode === "half");
+      const plan = getActiveHiitPlan();
       const restSeconds = Math.max(15, Math.min(240, Number(value) || plan.restSec));
       state.hiit.restDurations[getHiitSessionKey(plan)] = restSeconds;
       if (!state.hiit.timer.running && state.hiit.timer.phase === "rest") {
@@ -3822,9 +4049,11 @@
         const actionValue = plan.effectiveSessionType === "zone2"
           ? plan.zone2Minutes + " minutes"
           : plan.effectiveSessionType === "hiit"
-            ? getCurrentHiitOption()
+            ? plan.hiitVariant === "hellfireBenchmark" ? "Hellfire Benchmark" : getCurrentHiitOption()
             : plan.title;
-        const hiitHtml = plan.effectiveSessionType === "hiit" ? renderHiitCard() : "";
+        const hiitHtml = plan.effectiveSessionType === "hiit"
+          ? plan.hiitVariant === "hellfireBenchmark" ? renderHellfireBenchmarkCard() : renderHiitCard()
+          : "";
 
         view.innerHTML = `
           <div class="stack">
@@ -3863,6 +4092,12 @@
       const guidanceHtml = renderGuidanceAccordion(plan);
       const warmupHtml = renderWarmupAccordion();
       const cooldownHtml = renderCooldownAccordion();
+      const finisherHtml = state.settings.strengthHiitFinisher
+        ? renderHiitCard(getCurrentHiitFinisherPlan(), {
+            kicker: "5-minute finisher",
+            note: "Optional finisher after resistance training. It uses the current HIIT rotation, capped at about five minutes."
+          })
+        : "";
       const carryOverNote = workout.planDate && workout.planDate !== getTodayKey()
         ? `<p class="muted-note">You are continuing an open resistance training session from ${escapeHtml(workout.planDate)}. The exercise order stays the same until you complete or skip it.</p>`
         : "";
@@ -3886,6 +4121,7 @@
             ${warmupHtml}
             ${groupsHtml}
             ${renderStickyRestTimer()}
+            ${finisherHtml}
             ${carryOverNote}
             ${modeNote}
             ${cooldownHtml}
@@ -3902,6 +4138,19 @@
     }
 
     function renderTrainingGroups(workout, plan) {
+      if (workout.layout === "clientAB") {
+        return `
+          <div class="group-grid">
+            ${renderExerciseGroup({
+              id: "clientAB",
+              title: "Training " + workout.clientABDay,
+              subtitle: "Block " + ((Number(workout.clientABPhase) || 0) + 1) + " - " + getClientABProgressLabel(),
+              slots: workout.slots
+            }, workout.freeChoiceMode)}
+          </div>
+        `;
+      }
+
       if (workout.layout === "specialized") {
         const findSlot = (slotType) => workout.slots.find((slot) => slot.slotType === slotType);
         const missingSlots = workout.slots.filter((slot) => slot.slotType === "missing");
@@ -4114,12 +4363,14 @@
       `;
     }
 
-    function renderHiitCard() {
-      const plan = getCurrentHiitPlan();
+    function renderHiitCard(planOverride = null, options = {}) {
+      const plan = planOverride || getCurrentHiitPlan();
       prepareHiitSession(plan);
       const timer = state.hiit.timer;
       const weightValue = state.hiit.weights[getHiitSessionKey(plan)] || "";
       const restSeconds = getHiitRestSeconds(plan);
+      const kicker = options.kicker || "HIIT";
+      const note = options.note || "Wake lock stays active while the HIIT timer is running. Work and rest phases advance automatically, and each phase ends with a clear beep.";
       const phaseLabel = timer.phase === "work"
         ? "Work"
         : timer.phase === "rest"
@@ -4139,7 +4390,7 @@
         <article class="slot-card hiit-panel">
           <div class="slot-top">
             <div>
-              <p class="slot-kicker">HIIT</p>
+              <p class="slot-kicker">${escapeHtml(kicker)}</p>
               <h4 class="slot-title">${escapeHtml(plan.name)}</h4>
               <p class="exercise-name">${escapeHtml(formatHiitPlan(plan))}</p>
             </div>
@@ -4181,7 +4432,7 @@
               </div>
             </div>
           </div>
-          <div class="nudge-line">Wake lock stays active while the HIIT timer is running. Each phase ends with a clear beep.</div>
+          <div class="nudge-line">${escapeHtml(note)}</div>
         </article>
       `;
     }
@@ -4195,6 +4446,27 @@
         .split(/[\n,]+/)
         .map((item) => item.trim())
         .filter(Boolean);
+    }
+
+    function renderHellfireBenchmarkCard() {
+      return `
+        <article class="slot-card hiit-panel">
+          <div class="slot-top">
+            <div>
+              <p class="slot-kicker">Scratch the itch</p>
+              <h4 class="slot-title">Hellfire Benchmark</h4>
+              <p class="exercise-name">Fixed benchmark training. Compare time and quality, not just survival.</p>
+            </div>
+            <div class="slot-chip">14-day cooldown</div>
+          </div>
+          <div class="mini-card">
+            <ul class="detail-list">
+              ${HELLFIRE_BENCHMARK_WORKOUT.map((exercise) => `<li>${escapeHtml(exercise.name)} - ${escapeHtml(exercise.reps)}</li>`).join("")}
+            </ul>
+          </div>
+          <div class="nudge-line">Start conservatively, keep reps clean, and stop the benchmark if technique turns into negotiation.</div>
+        </article>
+      `;
     }
 
     function hasCustomExerciseOverride(patternKey, subcategory) {
@@ -4218,9 +4490,13 @@
           { heading: "Zone 2", items: [plan.zone2Minutes + " minutes of easy cardio.", "Keep it at conversation pace.", "Do not eat into recovery."] }
         ];
       } else if (plan.effectiveSessionType === "hiit") {
-        sections = [
-          { heading: "HIIT", items: [plan.hiitSets + " sets.", "Quality over violence.", "If the warm-up feels bad, switch to Breathe & Rest or Exploration."] }
-        ];
+        sections = plan.hiitVariant === "hellfireBenchmark"
+          ? [
+              { heading: "Hellfire Benchmark", items: ["Use the fixed benchmark order.", "Record time and quality.", "If the warm-up feels bad, switch to Breathe & Rest or Exploration."] }
+            ]
+          : [
+              { heading: "HIIT", items: [plan.hiitSets + " sets.", "Quality over violence.", "If the warm-up feels bad, switch to Breathe & Rest or Exploration."] }
+            ];
       } else if (plan.effectiveSessionType === "recovery") {
         summaryLabel = "Recovery day";
         sections = [
@@ -4466,6 +4742,8 @@
 
       const todayPlan = getTodayPlan();
       const workout = state.currentWorkout;
+      const finisherPlan = state.settings.strengthHiitFinisher ? getCurrentHiitFinisherPlan() : null;
+      const finisherSetsDone = finisherPlan ? (state.hiit.setsDone || 0) : 0;
       workout.slots.forEach((slot) => {
         if (!workout.freeChoiceMode && slot.exercise) {
           const record = getExerciseRecord(slot.exercise);
@@ -4485,6 +4763,11 @@
         recoveryBand: todayPlan.band ? todayPlan.band.label : "",
         recoveryTotal: todayPlan.total || null,
         freeChoiceMode: workout.freeChoiceMode,
+        clientABDay: workout.layout === "clientAB" ? workout.clientABDay : null,
+        clientABPhase: workout.layout === "clientAB" ? workout.clientABPhase : null,
+        hiitFinisher: finisherPlan && finisherSetsDone > 0 ? formatHiitPlan(finisherPlan) : null,
+        hiitWeight: finisherPlan && finisherSetsDone > 0 ? (state.hiit.weights[getHiitSessionKey(finisherPlan)] || "") : "",
+        hiitSetsDone: finisherSetsDone,
         slots: workout.slots.map((slot) => ({
           label: slot.label,
           subcategory: slot.subcategory,
@@ -4493,6 +4776,15 @@
         }))
       });
 
+      if (finisherSetsDone > 0) {
+        advanceHiitRotation();
+      }
+      if (workout.layout === "clientAB") {
+        advanceClientABBlock(workout.clientABDay);
+      }
+      state.hiit.timer.running = false;
+      state.hiit.timer.endTime = null;
+      state.hiit.timer.beeped = false;
       state.trainingSessionsCompleted += 1;
       state.currentWorkout = null;
       saveState();
@@ -4523,7 +4815,8 @@
 
     function handleFinishRecoveryDay() {
       const todayPlan = getTodayPlan();
-      const hiitPlan = todayPlan.effectiveSessionType === "hiit" ? getCurrentHiitPlan() : null;
+      const isHellfireBenchmark = todayPlan.hiitVariant === "hellfireBenchmark";
+      const hiitPlan = todayPlan.effectiveSessionType === "hiit" && !isHellfireBenchmark ? getCurrentHiitPlan() : null;
       if (hiitPlan) {
         advanceHiitRotation();
       }
@@ -4536,6 +4829,9 @@
         recoveryBand: todayPlan.band ? todayPlan.band.label : "",
         recoveryTotal: todayPlan.total || null,
         freeChoiceMode: false,
+        hiitVariant: todayPlan.hiitVariant || null,
+        hellfireBenchmark: isHellfireBenchmark,
+        hellfireWorkout: isHellfireBenchmark ? HELLFIRE_BENCHMARK_WORKOUT : null,
         hiitFinisher: hiitPlan ? formatHiitPlan(hiitPlan) : null,
         hiitWeight: hiitPlan ? (state.hiit.weights[getHiitSessionKey(hiitPlan)] || "") : "",
         hiitSetsDone: hiitPlan ? (state.hiit.setsDone || 0) : 0,
@@ -4606,10 +4902,10 @@
                 <div class="day-badges">
                   ${item.sessionType ? `<div class="badge">${escapeHtml(SESSION_LABELS[item.sessionType] || item.sessionType)}</div>` : ""}
                   ${item.recoveryTotal ? `<div class="badge">${escapeHtml(item.recoveryTotal + "/15")}</div>` : ""}
-                  ${item.type === "training" ? `<div class="badge">${item.freeChoiceMode ? "Free choice" : "Automatic"}</div>` : ""}
+                  ${item.type === "training" ? `<div class="badge">${item.clientABDay ? "A/B " + escapeHtml(item.clientABDay) : item.freeChoiceMode ? "Free choice" : "Automatic"}</div>` : ""}
                   ${item.type === "manual" ? `<div class="badge">Manual entry</div>` : ""}
                 </div>
-                <div class="history-meta">${escapeHtml(formatDateTime(item.completedAt))}${item.sessionType ? " - " + escapeHtml(SESSION_LABELS[item.sessionType] || item.sessionType) : ""}${item.recoveryTotal ? " - " + escapeHtml(item.recoveryTotal + "/15") : ""}${item.type === "training" ? " - " + (item.freeChoiceMode ? "Free choice" : "Automatic") : ""}${item.type === "manual" ? " - Manual entry" : ""}</div>
+                <div class="history-meta">${escapeHtml(formatDateTime(item.completedAt))}${item.sessionType ? " - " + escapeHtml(SESSION_LABELS[item.sessionType] || item.sessionType) : ""}${item.recoveryTotal ? " - " + escapeHtml(item.recoveryTotal + "/15") : ""}${item.type === "training" ? " - " + (item.clientABDay ? "A/B " + item.clientABDay : item.freeChoiceMode ? "Free choice" : "Automatic") : ""}${item.type === "manual" ? " - Manual entry" : ""}</div>
                 <div class="history-summary">${escapeHtml(summary)}</div>
               </article>
             `;
@@ -4621,8 +4917,49 @@
           </article>
         `;
 
-      const pendingModeNote = state.currentWorkout && state.currentWorkout.freeChoiceMode !== state.settings.freeChoice
-        ? `<p class="muted-note">The current resistance training session has already been generated. The new Free choice setting will fully apply once you rebuild that session.</p>`
+      const structureMode = state.settings.clientABBlocks ? "clientAB" : state.settings.freeChoice ? "freeChoice" : "compass";
+      const pendingModeNote = state.currentWorkout
+        && (
+          state.currentWorkout.freeChoiceMode !== state.settings.freeChoice
+          || (state.currentWorkout.layout === "clientAB") !== state.settings.clientABBlocks
+        )
+        ? `<p class="muted-note">The current resistance training session has already been generated. The new structure setting will fully apply once you rebuild that session.</p>`
+        : "";
+      const structureModeCards = [
+        {
+          key: "compass",
+          title: "Compass rotation",
+          summary: "Compass chooses exercises and rotates patterns automatically."
+        },
+        {
+          key: "freeChoice",
+          title: "Free choice",
+          summary: "Show only pattern and subcategory; the coach chooses the exercise."
+        },
+        {
+          key: "clientAB",
+          title: "A/B blocks",
+          summary: "Fixed Training A and B, each completed 6 times before the next block."
+        }
+      ].map((option) => `
+        <label class="mini-card">
+          <div style="display: flex; align-items: flex-start; gap: 10px;">
+            <input type="radio" name="structureMode" value="${escapeHtml(option.key)}" ${structureMode === option.key ? "checked" : ""}>
+            <div>
+              <h4>${escapeHtml(option.title)}</h4>
+              <p class="subtle">${escapeHtml(option.summary)}</p>
+            </div>
+          </div>
+        </label>
+      `).join("");
+      const clientABProgressMarkup = state.settings.clientABBlocks
+        ? `
+          <div class="mini-card" style="margin-top: 12px;">
+            <h4>A/B block progress</h4>
+            <p class="subtle">${escapeHtml(getClientABProgressLabel())}</p>
+            <button class="ghost-button" type="button" id="resetClientABButton">Reset A/B block</button>
+          </div>
+        `
         : "";
       const trainingStyleCards = Object.values(TRAINING_STYLE_OPTIONS).map((option) => `
         <label class="mini-card">
@@ -4689,16 +5026,14 @@
                 <p class="subtle">Settings and history.</p>
               </div>
             </div>
-            <div class="toggle-row">
-              <div>
-                <h3>Free choice</h3>
-                <p class="subtle">On: show only the pattern and subcategory. Off: automatically choose an exercise for each slot.</p>
-                ${pendingModeNote}
+            <div class="mini-card">
+              <h3>Training structure</h3>
+              <p class="subtle">Choose how resistance training is generated.</p>
+              ${pendingModeNote}
+              <div class="library-grid" style="margin-top: 12px;">
+                ${structureModeCards}
               </div>
-              <label class="switch" aria-label="Free choice on or off">
-                <input type="checkbox" id="freeChoiceToggle" ${state.settings.freeChoice ? "checked" : ""}>
-                <span class="slider"></span>
-              </label>
+              ${clientABProgressMarkup}
             </div>
             <div class="mini-card" style="margin-top: 14px;">
               <label class="input-wrap">
@@ -4707,6 +5042,29 @@
                   ${restDurationOptions}
                 </select>
               </label>
+            </div>
+            <div class="mini-card" style="margin-top: 14px;">
+              <h3>Conditioning</h3>
+              <div class="toggle-row">
+                <div>
+                  <h4>Scratch the itch</h4>
+                  <p class="subtle">On: a HIIT day with a 15/15 recovery score unlocks the Hellfire Benchmark when no Hellfire benchmark was logged in the last 14 days.</p>
+                </div>
+                <label class="switch" aria-label="Scratch the itch training on or off">
+                  <input type="checkbox" id="scratchTheItchToggle" ${state.settings.scratchTheItchTraining ? "checked" : ""}>
+                  <span class="slider"></span>
+                </label>
+              </div>
+              <div class="toggle-row">
+                <div>
+                  <h4>5-minute HIIT finisher</h4>
+                  <p class="subtle">On: resistance training days show a short finisher using the current HIIT rotation. Hellfire is never used as a finisher.</p>
+                </div>
+                <label class="switch" aria-label="5-minute HIIT finisher on or off">
+                  <input type="checkbox" id="strengthHiitFinisherToggle" ${state.settings.strengthHiitFinisher ? "checked" : ""}>
+                  <span class="slider"></span>
+                </label>
+              </div>
             </div>
             <div class="mini-card" style="margin-top: 14px;">
               <h3>Training style</h3>
@@ -4726,7 +5084,7 @@
             <details class="accordion">
               <summary>Compass logic</summary>
               <div class="accordion-body">
-                <p class="subtle">Compass works by calendar day. No training log yesterday means Resistance Training today. If yesterday was Resistance Training, today becomes Zone 2 when no Zone 2 was logged in the last 7 days, otherwise HIIT when no HIIT was logged in the last 7 days, otherwise Active recovery. Training blocks alternate between 3 days and 2 days: after a 3-day block comes a recovery day, then after the next 2-day block comes a recovery day, then back to 3. Empty days count as real rest days and reset the block back to the 3-day version. The app also caps training at 5 logged training days in the last 7 calendar days.</p>
+                <p class="subtle">Compass works by calendar day. No training log yesterday means Resistance Training today. If yesterday was Resistance Training, today becomes Zone 2 when no Zone 2 was logged in the last 7 days, otherwise HIIT when no HIIT was logged in the last 7 days, otherwise Active recovery. If Scratch the itch is on, a HIIT day with a 15/15 recovery score can become the Hellfire Benchmark when no Hellfire benchmark was logged in the last 14 days. Training blocks alternate between 3 days and 2 days: after a 3-day block comes a recovery day, then after the next 2-day block comes a recovery day, then back to 3. Empty days count as real rest days and reset the block back to the 3-day version. The app also caps training at 5 logged training days in the last 7 calendar days.</p>
               </div>
             </details>
           </article>
@@ -4783,15 +5141,48 @@
 
       document.getElementById("optionsTitle").addEventListener("click", unlockDebugSettings);
 
-      document.getElementById("freeChoiceToggle").addEventListener("change", (event) => {
-        state.settings.freeChoice = event.target.checked;
+      document.querySelectorAll('input[name="structureMode"]').forEach((input) => {
+        input.addEventListener("change", (event) => {
+          state.settings.freeChoice = event.target.value === "freeChoice";
+          state.settings.clientABBlocks = event.target.value === "clientAB";
+          state.currentWorkout = null;
+          saveState();
+          renderApp();
+          switchTab(TABS.OPTIONS);
+        });
+      });
+
+      const resetClientABButton = document.getElementById("resetClientABButton");
+      if (resetClientABButton) {
+        resetClientABButton.addEventListener("click", () => {
+          if (!window.confirm("Reset A/B block progress?")) {
+            return;
+          }
+          state.clientAB.phase = 0;
+          state.clientAB.completed = { A: 0, B: 0 };
+          state.currentWorkout = null;
+          saveState();
+          renderApp();
+          switchTab(TABS.OPTIONS);
+        });
+      }
+
+      document.getElementById("restDurationSelect").addEventListener("change", (event) => {
+        state.settings.restDurationSec = Number(event.target.value) || 75;
         saveState();
         renderApp();
         switchTab(TABS.OPTIONS);
       });
 
-      document.getElementById("restDurationSelect").addEventListener("change", (event) => {
-        state.settings.restDurationSec = Number(event.target.value) || 75;
+      document.getElementById("scratchTheItchToggle").addEventListener("change", (event) => {
+        state.settings.scratchTheItchTraining = event.target.checked;
+        saveState();
+        renderApp();
+        switchTab(TABS.OPTIONS);
+      });
+
+      document.getElementById("strengthHiitFinisherToggle").addEventListener("change", (event) => {
+        state.settings.strengthHiitFinisher = event.target.checked;
         saveState();
         renderApp();
         switchTab(TABS.OPTIONS);
