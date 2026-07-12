@@ -2795,12 +2795,39 @@
       return previousBlockLength >= 3 ? 2 : 3;
     }
 
+    function getFinisherTrainingRotationSessionType() {
+      let strengthSessionsSinceZone2 = 0;
+
+      for (const item of state.history) {
+        if (item.type === "skip") {
+          continue;
+        }
+        if (item.sessionType === "zone2") {
+          break;
+        }
+        if (item.sessionType === "strength") {
+          strengthSessionsSinceZone2 += 1;
+        }
+      }
+
+      return strengthSessionsSinceZone2 >= 3 ? "zone2" : "strength";
+    }
+
     function getBaseSessionTypeFromHistory() {
       const yesterdaySession = getSessionLoggedDaysAgo(1);
       const trainedYesterday = !!(yesterdaySession && isTrainingSessionType(yesterdaySession.sessionType));
 
       if (countTrainingDaysInLastDays(7) >= 5) {
         return "recovery";
+      }
+
+      if (state.settings.strengthHiitFinisher) {
+        const streakLength = getConsecutiveTrainingDaysEndingDaysAgo(1);
+        const streakTarget = getCurrentTrainingBlockTarget();
+        if (trainedYesterday && streakLength >= streakTarget) {
+          return "recovery";
+        }
+        return getFinisherTrainingRotationSessionType();
       }
 
       if (!trainedYesterday) {
@@ -5058,7 +5085,7 @@
               <div class="toggle-row">
                 <div>
                   <h4>5-minute HIIT finisher</h4>
-                  <p class="subtle">On: resistance training days show a short finisher using the current HIIT rotation. Hellfire is never used as a finisher.</p>
+                  <p class="subtle">On: the session rotation becomes 3 resistance training sessions followed by 1 Zone 2 session. Resistance training days show a short finisher using the current HIIT rotation. Standalone HIIT and Hellfire are removed from the rotation; Hellfire is never used as a finisher.</p>
                 </div>
                 <label class="switch" aria-label="5-minute HIIT finisher on or off">
                   <input type="checkbox" id="strengthHiitFinisherToggle" ${state.settings.strengthHiitFinisher ? "checked" : ""}>
@@ -5084,7 +5111,7 @@
             <details class="accordion">
               <summary>Compass logic</summary>
               <div class="accordion-body">
-                <p class="subtle">Compass works by calendar day. No training log yesterday means Resistance Training today. If yesterday was Resistance Training, today becomes Zone 2 when no Zone 2 was logged in the last 7 days, otherwise HIIT when no HIIT was logged in the last 7 days, otherwise Active recovery. If Scratch the itch is on, a HIIT day with a 15/15 recovery score can become the Hellfire Benchmark when no Hellfire benchmark was logged in the last 14 days. Training blocks alternate between 3 days and 2 days: after a 3-day block comes a recovery day, then after the next 2-day block comes a recovery day, then back to 3. Empty days count as real rest days and reset the block back to the 3-day version. The app also caps training at 5 logged training days in the last 7 calendar days.</p>
+                <p class="subtle">Compass works by calendar day. With the 5-minute HIIT finisher off, no training log yesterday means Resistance Training today. If yesterday was Resistance Training, today becomes Zone 2 when no Zone 2 was logged in the last 7 days, otherwise HIIT when no HIIT was logged in the last 7 days, otherwise Active recovery. If Scratch the itch is on, a HIIT day with a 15/15 recovery score can become the Hellfire Benchmark when no Hellfire benchmark was logged in the last 14 days. With the finisher on, training sessions rotate through 3 Resistance Training sessions and 1 Zone 2 session; standalone HIIT and Hellfire are skipped. Training blocks alternate between 3 days and 2 days: after a 3-day block comes a recovery day, then after the next 2-day block comes a recovery day, then back to 3. Empty days count as real rest days and reset the block back to the 3-day version. The app also caps training at 5 logged training days in the last 7 calendar days.</p>
               </div>
             </details>
           </article>
