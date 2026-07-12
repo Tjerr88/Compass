@@ -6,7 +6,7 @@
   <title>Compass</title>
   <meta name="theme-color" content="#384437">
   <meta name="description" content="Compass - daily practice for strength, health and character.">
-  <meta name="compass-build" content="2026-07-09-nudge-complete-sets-1">
+  <meta name="compass-build" content="2026-07-12-main-lift-nudges-1">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Compass">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -3251,7 +3251,8 @@
 
       const direction = nudge.direction === "down" ? -1 : 1;
       const percent = getNudgeBasePercent(patternKey) * nudge.level;
-      const nextValue = Math.max(0, roundLoadToStep(currentValue * (1 + direction * percent)));
+      const roundedChange = Math.max(2.5, roundLoadToStep(currentValue * percent));
+      const nextValue = Math.max(0, currentValue + (direction * roundedChange));
       return String(lastValue).slice(0, match.index) + formatLoadValue(nextValue) + String(lastValue).slice(match.index + match[0].length);
     }
 
@@ -4119,6 +4120,10 @@
       const guidanceHtml = renderGuidanceAccordion(plan);
       const warmupHtml = renderWarmupAccordion();
       const cooldownHtml = renderCooldownAccordion();
+      const hasMainLift = workout.slots.some((slot) => slot.slotType === "mainLift");
+      const nudgeRuleHtml = workout.freeChoiceMode
+        ? ""
+        : `<p class="nudge-line"><strong>Load nudge rule:</strong> ${hasMainLift ? "Main Lift — complete 6 × 12 at 0–2 RIR: choose +; if the final set reaches 17+ reps: choose ++; miss 6 × 12: keep the current load; cannot complete 3 × 6: reduce the load. " : ""}Other lifts — choose + when the final set finishes with 5+ quality reps beyond the prescribed target.</p>`;
       const finisherHtml = state.settings.strengthHiitFinisher
         ? renderHiitCard(getCurrentHiitFinisherPlan(), {
             kicker: "5-minute finisher",
@@ -4146,6 +4151,7 @@
             </div>
             ${guidanceHtml}
             ${warmupHtml}
+            ${nudgeRuleHtml}
             ${groupsHtml}
             ${renderStickyRestTimer()}
             ${finisherHtml}
@@ -4282,14 +4288,6 @@
       return nudge && nudge.direction === direction ? nudge.level : 0;
     }
 
-    function getNudgeButtonLabel(slot, direction) {
-      const level = getNudgeLevel(slot, direction);
-      if (!level) {
-        return direction === "up" ? "+" : "-";
-      }
-      return (direction === "up" ? "+" : "-") + level;
-    }
-
     function renderSlot(slot, freeChoiceMode) {
       const prescription = getSlotPrescription(slot);
       const prescriptionMarkup = prescription
@@ -4301,6 +4299,15 @@
         : "";
       const setCount = Number(slot.setsDone) || 0;
       const nudge = normalizeNudgeChoice(slot.nudgeChoice);
+      const isMainLift = slot.slotType === "mainLift";
+      const nudgeControlsMarkup = isMainLift
+        ? `
+          <button class="nudge-button ${getNudgeLevel(slot, "down") === 2 ? "active-down" : ""}" type="button" data-action="nudge" data-slot-id="${escapeHtml(slot.id)}" data-direction="down" data-level="2" aria-label="Noticeably lighter next time">--</button>
+          <button class="nudge-button ${getNudgeLevel(slot, "down") === 1 ? "active-down" : ""}" type="button" data-action="nudge" data-slot-id="${escapeHtml(slot.id)}" data-direction="down" data-level="1" aria-label="A little lighter next time">-</button>
+          <button class="nudge-button ${getNudgeLevel(slot, "up") === 1 ? "active-up" : ""}" type="button" data-action="nudge" data-slot-id="${escapeHtml(slot.id)}" data-direction="up" data-level="1" aria-label="A little heavier next time">+</button>
+          <button class="nudge-button ${getNudgeLevel(slot, "up") === 2 ? "active-up" : ""}" type="button" data-action="nudge" data-slot-id="${escapeHtml(slot.id)}" data-direction="up" data-level="2" aria-label="Noticeably heavier next time">++</button>
+        `
+        : `<button class="nudge-button ${getNudgeLevel(slot, "up") === 1 ? "active-up" : ""}" type="button" data-action="nudge" data-slot-id="${escapeHtml(slot.id)}" data-direction="up" data-level="1" aria-label="Increase after 5 or more quality reps beyond the target">+</button>`;
       const controlsMarkup = freeChoiceMode
         ? ""
         : `
@@ -4315,8 +4322,7 @@
               >
             </label>
             <div class="nudge-controls">
-              <button class="nudge-button ${nudge && nudge.direction === "down" ? "active-down" : ""}" type="button" data-action="nudge" data-slot-id="${escapeHtml(slot.id)}" data-direction="down" aria-label="A little lighter next time">${escapeHtml(getNudgeButtonLabel(slot, "down"))}</button>
-              <button class="nudge-button ${nudge && nudge.direction === "up" ? "active-up" : ""}" type="button" data-action="nudge" data-slot-id="${escapeHtml(slot.id)}" data-direction="up" aria-label="A little heavier next time">${escapeHtml(getNudgeButtonLabel(slot, "up"))}</button>
+              ${nudgeControlsMarkup}
             </div>
           </div>
         `;
@@ -4615,18 +4621,15 @@
         button.addEventListener("click", () => {
           const slotId = button.getAttribute("data-slot-id");
           const direction = button.getAttribute("data-direction");
+          const level = Number(button.getAttribute("data-level"));
           const slot = findWorkoutSlot(slotId);
           if (!slot) {
             return;
           }
           const current = normalizeNudgeChoice(slot.nudgeChoice);
-          if (!current || current.direction !== direction) {
-            slot.nudgeChoice = { direction, level: 1 };
-          } else if (current.level === 1) {
-            slot.nudgeChoice = { direction, level: 2 };
-          } else {
-            slot.nudgeChoice = null;
-          }
+          slot.nudgeChoice = current && current.direction === direction && current.level === level
+            ? null
+            : { direction, level };
           saveState();
           renderToday();
         });
