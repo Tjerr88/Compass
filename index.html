@@ -1546,12 +1546,132 @@
         justify-content: center;
       }
     }
+    .onboarding-shell {
+      min-height: 100vh;
+      padding: 28px 18px;
+      display: grid;
+      place-items: center;
+      background:
+        linear-gradient(135deg, rgba(251, 247, 239, 0.96), rgba(231, 222, 206, 0.90)),
+        url("background-compass-map.png") center / cover fixed;
+    }
+
+    .onboarding-shell[hidden],
+    .app-shell[hidden] {
+      display: none;
+    }
+
+    .onboarding-card {
+      width: min(760px, 100%);
+      padding: clamp(24px, 5vw, 48px);
+      border: 1px solid rgba(91, 79, 61, 0.14);
+      border-radius: 28px;
+      background: rgba(251, 247, 239, 0.96);
+      box-shadow: var(--shadow);
+    }
+
+    .onboarding-logo {
+      width: 76px;
+      height: 76px;
+      object-fit: contain;
+      margin-bottom: 16px;
+    }
+
+    .onboarding-progress {
+      height: 7px;
+      margin: 18px 0 30px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(64, 107, 90, 0.12);
+    }
+
+    .onboarding-progress span {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #607055, var(--primary-strong));
+      transition: width 180ms ease;
+    }
+
+    .onboarding-options {
+      display: grid;
+      gap: 12px;
+      margin-top: 22px;
+    }
+
+    .onboarding-option {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: 13px;
+      padding: 17px;
+      cursor: pointer;
+      border: 1px solid rgba(91, 79, 61, 0.16);
+      border-radius: 17px;
+      background: rgba(255, 255, 255, 0.54);
+      transition: border-color 150ms ease, background 150ms ease, transform 150ms ease;
+    }
+
+    .onboarding-option:hover {
+      transform: translateY(-1px);
+      border-color: rgba(64, 107, 90, 0.48);
+    }
+
+    .onboarding-option:has(input:checked) {
+      border-color: var(--primary);
+      background: rgba(64, 107, 90, 0.09);
+    }
+
+    .onboarding-option input {
+      margin-top: 4px;
+      accent-color: var(--primary);
+    }
+
+    .onboarding-option strong,
+    .onboarding-option span {
+      display: block;
+    }
+
+    .onboarding-option span {
+      margin-top: 4px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .onboarding-follow-up {
+      margin-top: 16px;
+      padding: 17px;
+      border-radius: 17px;
+      background: rgba(241, 191, 121, 0.16);
+    }
+
+    .onboarding-actions {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 28px;
+    }
+
+    .onboarding-error {
+      min-height: 1.4em;
+      margin-top: 12px;
+      color: #9b4242;
+      font-weight: 700;
+    }
+
+    @media (max-width: 560px) {
+      .onboarding-shell { padding: 12px; }
+      .onboarding-card { padding: 24px 18px; border-radius: 22px; }
+      .onboarding-actions { flex-direction: column-reverse; }
+      .onboarding-actions button { width: 100%; }
+    }
   </style>
 </head>
 <body>
   <div class="confetti-layer" id="confettiLayer" aria-hidden="true"></div>
 
-  <main class="app-shell">
+  <section class="onboarding-shell" id="onboardingView" hidden aria-live="polite"></section>
+
+  <main class="app-shell" id="appShell">
     <section class="hero">
       <div class="hero-content">
         <img class="brand-logo" src="logo-compass.png" alt="Compass">
@@ -1583,7 +1703,7 @@
     const LS_FOCUS_BAG_KEY = "session_compass_focus_bag_v2";
     const LS_FOCUS_DAY_KEY = "session_compass_focus_day_v2";
     const LS_FOCUS_TODAY_KEY = "session_compass_focus_today_v2";
-    const APP_VERSION = 18;
+    const APP_VERSION = 19;
     let deferredInstallPrompt = null;
     const TABS = { TODAY: "today", OPTIONS: "options", CUSTOM: "custom" };
     const RECOVERY_FIELDS = [
@@ -2090,6 +2210,7 @@
     function createDefaultState() {
       return {
         appVersion: APP_VERSION,
+        onboardingCompleted: false,
         trainingSessionsCompleted: 0,
         settings: {
           freeChoice: false,
@@ -2188,6 +2309,8 @@
     let wakeLock = null;
     let debugSettingsUnlocked = false;
     let debugUnlockTapCount = 0;
+    let onboardingStep = 0;
+    let onboardingDraft = null;
 
     function unlockDebugSettings() {
       debugUnlockTapCount += 1;
@@ -5461,7 +5584,177 @@
       });
     }
 
+    function getOnboardingDraft() {
+      if (!onboardingDraft) {
+        onboardingDraft = {
+          structure: null,
+          restDurationSec: null,
+          conditioning: null,
+          trainingStyle: null,
+          femalePerformance: null
+        };
+      }
+      return onboardingDraft;
+    }
+
+    function onboardingOption(name, value, title, description, selectedValue) {
+      return `
+        <label class="onboarding-option">
+          <input type="radio" name="${escapeHtml(name)}" value="${escapeHtml(value)}" ${selectedValue === value ? "checked" : ""}>
+          <span>
+            <strong>${escapeHtml(title)}</strong>
+            <span>${escapeHtml(description)}</span>
+          </span>
+        </label>
+      `;
+    }
+
+    function getOnboardingStepMarkup(step, draft) {
+      if (step === 0) {
+        return `
+          <p class="eyebrow">Step 1 of 5</p>
+          <h2>How would you like to train?</h2>
+          <p class="subtle">Choose how Compass should select and rotate your exercises.</p>
+          <div class="onboarding-options">
+            ${onboardingOption("onboardingStructure", "compass", "Recommended rotation", "Compass recommends your exercises and rotates them for you.", draft.structure)}
+            ${onboardingOption("onboardingStructure", "freeChoice", "Choose each session", "Compass gives you the focus and movement patterns; you choose today's exercises.", draft.structure)}
+            ${onboardingOption("onboardingStructure", "clientAB", "Longer training blocks", "Keep the same exercises for a longer period before Compass rotates them.", draft.structure)}
+          </div>
+        `;
+      }
+      if (step === 1) {
+        return `
+          <p class="eyebrow">Step 2 of 5</p>
+          <h2>How long do you rest between sets?</h2>
+          <p class="subtle">You can always change this later in Options.</p>
+          <div class="onboarding-options">
+            ${[60, 75, 90].map((seconds) => onboardingOption("onboardingRest", String(seconds), seconds + " seconds", seconds === 75 ? "A balanced default for most sessions." : seconds === 60 ? "A quicker pace with shorter recovery." : "More recovery before the next set.", String(draft.restDurationSec))).join("")}
+          </div>
+        `;
+      }
+      if (step === 2) {
+        return `
+          <p class="eyebrow">Step 3 of 5</p>
+          <h2>Where should HIIT fit?</h2>
+          <p class="subtle">Choose whether short conditioning supports your strength sessions or gets its own day.</p>
+          <div class="onboarding-options">
+            ${onboardingOption("onboardingConditioning", "finisher", "Short HIIT finisher", "Best if you train 2-4 times per week and want a brief fat-loss finisher after resistance training.", draft.conditioning)}
+            ${onboardingOption("onboardingConditioning", "standalone", "HIIT on its own day", "Keep resistance training and HIIT as separate sessions in the rotation.", draft.conditioning)}
+          </div>
+        `;
+      }
+      if (step === 3) {
+        const followUp = draft.trainingStyle === "strength" ? `
+          <div class="onboarding-follow-up">
+            <h3>Female Performance Lens</h3>
+            <p class="subtle">Are you a woman aged 35-50 and do you want Compass to use the Stacy Sims-inspired 4x4 strength approach?</p>
+            <div class="onboarding-options">
+              ${onboardingOption("onboardingFemaleLens", "yes", "Yes, use the performance lens", "Main exercises use four heavy, clean sets of four reps.", draft.femalePerformance)}
+              ${onboardingOption("onboardingFemaleLens", "no", "No, use standard strength", "Use the regular Compass strength guidelines.", draft.femalePerformance)}
+            </div>
+          </div>
+        ` : "";
+        return `
+          <p class="eyebrow">Step 4 of 5</p>
+          <h2>What is your main goal?</h2>
+          <p class="subtle">This determines the sets, reps, and effort guidance shown during training.</p>
+          <div class="onboarding-options">
+            ${onboardingOption("onboardingGoal", "strength", "Get stronger", "Heavy, controlled work focused on strength.", draft.trainingStyle)}
+            ${onboardingOption("onboardingGoal", "hypertrophy", "Build muscle", "Higher-volume training focused on muscle growth.", draft.trainingStyle)}
+            ${onboardingOption("onboardingGoal", "med", "Minimum effective dose", "Do the minimum needed to keep moving forward.", draft.trainingStyle)}
+            ${onboardingOption("onboardingGoal", "delorme", "Traditional single hard set", "Build through 50% and 75%, then perform one hard effort set.", draft.trainingStyle)}
+            ${onboardingOption("onboardingGoal", "specialized", "Pattern-focused hypertrophy", "Full-body muscle growth with extra work for today's priority pattern.", draft.trainingStyle)}
+          </div>
+          ${followUp}
+        `;
+      }
+      return `
+        <p class="eyebrow">Step 5 of 5</p>
+        <h2>Start with the Compass rotation</h2>
+        <p>Every exercise in your program can be changed later under <strong>Options → Advanced: custom exercises</strong>.</p>
+        <div class="onboarding-follow-up">
+          <h3>Our recommendation</h3>
+          <p class="subtle">Complete at least one full cycle with the current rotation before replacing exercises. This gives Compass enough time to show you how the program is designed to work.</p>
+        </div>
+      `;
+    }
+
+    function renderOnboarding() {
+      const view = document.getElementById("onboardingView");
+      const appShell = document.getElementById("appShell");
+      const draft = getOnboardingDraft();
+      appShell.hidden = true;
+      view.hidden = false;
+      view.innerHTML = `
+        <article class="onboarding-card">
+          <img class="onboarding-logo" src="logo-compass.png" alt="Compass">
+          <p class="eyebrow">Welcome to Compass</p>
+          <div class="onboarding-progress" aria-label="Setup progress"><span style="width: ${((onboardingStep + 1) / 5) * 100}%"></span></div>
+          <div id="onboardingStepContent">${getOnboardingStepMarkup(onboardingStep, draft)}</div>
+          <div class="onboarding-error" id="onboardingError" role="alert"></div>
+          <div class="onboarding-actions">
+            ${onboardingStep > 0 ? `<button class="ghost-button" type="button" id="onboardingBackButton">Back</button>` : `<span></span>`}
+            <button class="primary-button" type="button" id="onboardingNextButton">${onboardingStep === 4 ? "Start using Compass" : "Continue"}</button>
+          </div>
+        </article>
+      `;
+
+      view.querySelectorAll('input[name="onboardingStructure"]').forEach((input) => input.addEventListener("change", (event) => { draft.structure = event.target.value; }));
+      view.querySelectorAll('input[name="onboardingRest"]').forEach((input) => input.addEventListener("change", (event) => { draft.restDurationSec = Number(event.target.value); }));
+      view.querySelectorAll('input[name="onboardingConditioning"]').forEach((input) => input.addEventListener("change", (event) => { draft.conditioning = event.target.value; }));
+      view.querySelectorAll('input[name="onboardingGoal"]').forEach((input) => input.addEventListener("change", (event) => {
+        draft.trainingStyle = event.target.value;
+        if (draft.trainingStyle !== "strength") draft.femalePerformance = null;
+        renderOnboarding();
+      }));
+      view.querySelectorAll('input[name="onboardingFemaleLens"]').forEach((input) => input.addEventListener("change", (event) => { draft.femalePerformance = event.target.value; }));
+
+      const backButton = document.getElementById("onboardingBackButton");
+      if (backButton) backButton.addEventListener("click", () => { onboardingStep -= 1; renderOnboarding(); });
+      document.getElementById("onboardingNextButton").addEventListener("click", handleOnboardingNext);
+    }
+
+    function handleOnboardingNext() {
+      const draft = getOnboardingDraft();
+      const error = document.getElementById("onboardingError");
+      const valid = onboardingStep === 0 ? Boolean(draft.structure)
+        : onboardingStep === 1 ? [60, 75, 90].includes(draft.restDurationSec)
+          : onboardingStep === 2 ? Boolean(draft.conditioning)
+            : onboardingStep === 3 ? Boolean(draft.trainingStyle) && (draft.trainingStyle !== "strength" || Boolean(draft.femalePerformance))
+              : true;
+      if (!valid) {
+        error.textContent = onboardingStep === 3 && draft.trainingStyle === "strength" ? "Please answer the follow-up question." : "Please choose an option to continue.";
+        return;
+      }
+      if (onboardingStep < 4) {
+        onboardingStep += 1;
+        renderOnboarding();
+        window.scrollTo(0, 0);
+        return;
+      }
+
+      state.settings.freeChoice = draft.structure === "freeChoice";
+      state.settings.clientABBlocks = draft.structure === "clientAB";
+      state.settings.restDurationSec = draft.restDurationSec;
+      state.settings.strengthHiitFinisher = draft.conditioning === "finisher";
+      state.settings.trainingStyle = draft.trainingStyle;
+      state.settings.strengthLens = draft.trainingStyle === "strength" && draft.femalePerformance === "yes" ? "femalePerformance" : "standard";
+      state.onboardingCompleted = true;
+      state.currentWorkout = null;
+      onboardingDraft = null;
+      onboardingStep = 0;
+      saveState();
+      renderApp();
+      switchTab(TABS.TODAY);
+    }
+
     function renderApp() {
+      if (!state.onboardingCompleted) {
+        renderOnboarding();
+        return;
+      }
+      document.getElementById("onboardingView").hidden = true;
+      document.getElementById("appShell").hidden = false;
       syncTimerState();
       updateHero();
       renderToday();
