@@ -2220,6 +2220,7 @@
           scratchTheItchTraining: false,
           strengthHiitFinisher: false,
           clientABBlocks: false,
+          debugDisableCardio: false,
           debugMultipleSessions: false,
           debugMultipleSessionsDate: null
         },
@@ -2942,6 +2943,12 @@
 
       if (countTrainingDaysInLastDays(7) >= 5) {
         return "recovery";
+      }
+
+      if (state.settings.debugDisableCardio) {
+        const streakLength = getConsecutiveTrainingDaysEndingDaysAgo(1);
+        const streakTarget = getCurrentTrainingBlockTarget();
+        return trainedYesterday && streakLength >= streakTarget ? "recovery" : "strength";
       }
 
       if (state.settings.strengthHiitFinisher) {
@@ -4247,7 +4254,7 @@
       const nudgeRuleHtml = workout.freeChoiceMode
         ? ""
         : `<p class="nudge-line"><strong>Load nudge rule:</strong> ${hasMainLift ? "Main Lift — complete 6 × 12 at 0–2 RIR: choose +; if the final set reaches 17+ reps: choose ++; miss 6 × 12: keep the current load; cannot complete 3 × 6: reduce the load. " : ""}Other lifts — choose + when the final set finishes with 5+ quality reps beyond the prescribed target.</p>`;
-      const finisherHtml = state.settings.strengthHiitFinisher
+      const finisherHtml = state.settings.strengthHiitFinisher && !state.settings.debugDisableCardio
         ? renderHiitCard(getCurrentHiitFinisherPlan(), {
             kicker: "5-minute finisher",
             note: "Optional finisher after resistance training. It uses the current HIIT rotation, capped at about five minutes."
@@ -4895,7 +4902,7 @@
 
       const todayPlan = getTodayPlan();
       const workout = state.currentWorkout;
-      const finisherPlan = state.settings.strengthHiitFinisher ? getCurrentHiitFinisherPlan() : null;
+      const finisherPlan = state.settings.strengthHiitFinisher && !state.settings.debugDisableCardio ? getCurrentHiitFinisherPlan() : null;
       const finisherSetsDone = finisherPlan ? (state.hiit.setsDone || 0) : 0;
       workout.slots.forEach((slot) => {
         if (!workout.freeChoiceMode && slot.exercise) {
@@ -5153,16 +5160,26 @@
           </div>
         `
         : "";
-      const debugSettingsMarkup = debugSettingsUnlocked || state.settings.debugMultipleSessions
+      const debugSettingsMarkup = debugSettingsUnlocked || state.settings.debugMultipleSessions || state.settings.debugDisableCardio
         ? `
           <div class="mini-card" style="margin-top: 14px;">
             <div class="toggle-row">
               <div>
-                <h4>Debug testing</h4>
+                <h4>Debug Settings</h4>
                 <p class="subtle">Allow multiple sessions on the same calendar day. For QA only.</p>
               </div>
               <label class="switch" aria-label="Debug multiple sessions on or off">
                 <input type="checkbox" id="debugMultipleSessionsToggle" ${state.settings.debugMultipleSessions ? "checked" : ""}>
+                <span class="slider"></span>
+              </label>
+            </div>
+            <div class="toggle-row">
+              <div>
+                <h4>Disable cardio</h4>
+                <p class="subtle">Skip Zone 2, HIIT and Hellfire, including the HIIT finisher. Strength training and recovery days remain. This setting stays on until you turn it off.</p>
+              </div>
+              <label class="switch" aria-label="Disable cardio on or off">
+                <input type="checkbox" id="debugDisableCardioToggle" ${state.settings.debugDisableCardio ? "checked" : ""}>
                 <span class="slider"></span>
               </label>
             </div>
@@ -5354,6 +5371,16 @@
       if (femalePerformanceLensToggle) {
         femalePerformanceLensToggle.addEventListener("change", (event) => {
           state.settings.strengthLens = event.target.checked ? "femalePerformance" : "standard";
+          saveState();
+          renderApp();
+          switchTab(TABS.OPTIONS);
+        });
+      }
+
+      const debugDisableCardioToggle = document.getElementById("debugDisableCardioToggle");
+      if (debugDisableCardioToggle) {
+        debugDisableCardioToggle.addEventListener("change", (event) => {
+          state.settings.debugDisableCardio = event.target.checked;
           saveState();
           renderApp();
           switchTab(TABS.OPTIONS);
