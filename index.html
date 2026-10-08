@@ -5196,7 +5196,8 @@
                 <p class="subtle">Settings and history.</p>
               </div>
             </div>
-            <div class="mini-card">
+            ${debugSettingsMarkup}
+            <div class="mini-card" style="margin-top: ${debugSettingsMarkup ? "14px" : "0"};">
               <h3>Training structure</h3>
               <p class="subtle">Choose how resistance training is generated.</p>
               ${pendingModeNote}
@@ -5243,7 +5244,6 @@
                 ${trainingStyleCards}
               </div>
               ${strengthLensMarkup}
-              ${debugSettingsMarkup}
             </div>
             <div class="button-row">
               <button class="ghost-button" type="button" id="resetButton">Reset all</button>
